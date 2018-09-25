@@ -220,7 +220,7 @@ void grid_addPath_Ptr (grid_t* gridPtr, vector_t* pointVectorPtr){
 
     for (i = 1; i < (n-1); i++) {
         long* gridPointPtr = (long*)vector_at(pointVectorPtr, i);
-        *gridPointPtr = GRID_POINT_FULL; 
+        *gridPointPtr = GRID_POINT_FULL;
     }
 }
 
@@ -233,6 +233,7 @@ void grid_print (grid_t* gridPtr){
     // TODO implementar esta funcao
     // Sugestão: usem as opções de formatação do output do printf para impor espaço fixo
     // entre os elementos da grelha. Por exemplo: printf("%4li", valor-a-imprimir);
+    
 }
 
 
