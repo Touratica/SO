@@ -28,7 +28,7 @@ lib/queue.o: lib/queue.c lib/types.h lib/queue.h
 	gcc $(CFLAGS) -c lib/queue.c -o lib/queue.o
 
 lib/vector.o: lib/vector.c lib/types.h lib/utility.h lib/vector.h
-		gcc $(CFLAGS) -c lib/vector.c -o lib/vector.o
+	gcc $(CFLAGS) -c lib/vector.c -o lib/vector.o
 
 clean:
 	rm -f *.o lib/*.o CircuitRouter-SeqSolver
