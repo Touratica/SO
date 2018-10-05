@@ -117,13 +117,14 @@ static void setDefaultParams (){
 static void parseArgs (long argc, char* const argv[]){
     long i;
     long opt;
-    int f;
+    int f,n_files=0;
 
     opterr = 0;
 
     setDefaultParams();
 
     while ((opt = getopt(argc, argv, "hb:px:y:z:")) != -1 ) {
+
         switch (opt) {
             case 'b':
             case 'x':
@@ -143,13 +144,13 @@ static void parseArgs (long argc, char* const argv[]){
     }
 
     // getopt permutes the content of argv, the non options are at the end
-    if ((argc-1)==optind) {
-        fprintf(stderr, "File Argument Missing.");
-        opterr++;
-    }
     for (i = optind; i < argc; i++) {
         if ((f=access(argv[i], R_OK))==-1){
-            fprintf(stderr, "Not able to acess: %s\n", argv[i]);
+            fprintf(stderr, "Non-option: %s\n", argv[i]);
+            opterr++;
+        }
+        if ((++n_files)>1){
+            fprintf(stderr, "Only one file allowed.\n");
             opterr++;
         }
     }
