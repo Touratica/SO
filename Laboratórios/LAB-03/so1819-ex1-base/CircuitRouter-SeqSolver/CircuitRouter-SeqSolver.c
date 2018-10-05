@@ -55,6 +55,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "lib/list.h"
 #include "maze.h"
 #include "router.h"
@@ -116,12 +117,13 @@ static void setDefaultParams (){
 static void parseArgs (long argc, char* const argv[]){
     long i;
     long opt;
+    int f;
 
     opterr = 0;
 
     setDefaultParams();
 
-    while ((opt = getopt(argc, argv, "hb:px:y:z:")) != -1) {
+    while ((opt = getopt(argc, argv, "hb:px:y:z:")) != -1 ) {
         switch (opt) {
             case 'b':
             case 'x':
@@ -140,9 +142,16 @@ static void parseArgs (long argc, char* const argv[]){
         }
     }
 
-    for (i = optind; i < argc; i++) {
-        fprintf(stderr, "Non-option argument: %s\n", argv[i]);
+    // getopt permutes the content of argv, the non options are at the end
+    if ((argc-1)==optind) {
+        fprintf(stderr, "File Argument Missing.");
         opterr++;
+    }
+    for (i = optind; i < argc; i++) {
+        if ((f=access(argv[i], R_OK))==-1){
+            fprintf(stderr, "Not able to acess: %s\n", argv[i]);
+            opterr++;
+        }
     }
 
     if (opterr) {
@@ -163,7 +172,7 @@ int main(int argc, char** argv){
     maze_t* mazePtr = maze_alloc();
     assert(mazePtr);
 
-    long numPathToRoute = maze_read(mazePtr);
+    long numPathToRoute = maze_read(mazePtr,argv[argc-1]);
     router_t* routerPtr = router_alloc(global_params[PARAM_XCOST],
                                        global_params[PARAM_YCOST],
                                        global_params[PARAM_ZCOST],
