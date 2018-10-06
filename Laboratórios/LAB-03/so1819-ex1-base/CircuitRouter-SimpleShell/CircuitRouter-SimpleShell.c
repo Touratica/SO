@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "CircuitRouter-SimpleShell.h"
+#include "../lib/queue.h"
 
 #define MAX_BUFFER 256
 #define TRUE 1
@@ -16,9 +17,9 @@ int main(int argc, char** argv) {
 	int i;
 	int status;
 	long long maxchildren = 0;
-	long long n_child = 0;
-	__pid_t* pids; 
+	long long n_child = 0, n;
 	__pid_t pid;
+	queue_t* childQueue;
 
 	if (argc > 2) {
 		fprintf(stderr, "%s: too many arguments\n", argv[0]);
@@ -36,13 +37,10 @@ int main(int argc, char** argv) {
 			errx(1, "%s: not a valid MAXCHILDREN number", argv[0]);
 		}
 	}
-	if (maxchildren != 0) {
-		pids = (__pid_t*) malloc(sizeof(__pid_t) * maxchildren);
-	}
 	fprintf(stdout, "******************************************************************************\n\n");
 	fprintf(stdout, "                        CIRCUIT ROUTER - SIMPLE SHELL\n\n");
 	fprintf(stdout, "******************************************************************************\n");
-
+	childQueue = queue_alloc(10);
 	while (TRUE){
 		fprintf(stdout, "Circuit Router$ ");
 		for (i = 0; (c = getchar()) != ' ' && c != '\n'; i++) {
@@ -65,15 +63,21 @@ int main(int argc, char** argv) {
 					}
 					else {
 						strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-						if (++n_child > maxchildren) {
+						if (++n_child > maxchildren && maxchildren > 0) {
 							pid = wait(&status);
+							queue_push(childQueue, &pid);
+							queue_push(childQueue, &status);
 							n_child--;
 						}
-						i = 0;
-						while (pids[i++] == 0);
-						pids[i] = fork();
-						if (pids[i] == 0) {
-							execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL);
+						pid = fork();
+						n_child++;
+						if (pid == 0) {
+							if (execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL) == -1) {
+								exit(EXIT_FAILURE);
+							}
+							else {
+								exit(EXIT_SUCCESS);
+							}
 						}
 					}
 				}
@@ -88,7 +92,22 @@ int main(int argc, char** argv) {
 		
 		else if (!strcmp(buffer, "exit") && c == '\n')	{
 			if (c == '\n') {
-			// TODO waits until all children end, outputs result and exits app
+			for (n = n_child; n > 0; n--) {
+				pid = wait(&status);
+				queue_push(childQueue, &pid);
+				queue_push(childQueue, &status);
+			}
+			while (!queue_isEmpty(childQueue)) {
+				int* status = (int*) queue_pop(childQueue);
+				__pid_t* pid = (__pid_t*) queue_pop(childQueue);
+				fprintf(stdout, "CHILD EXITED (PID=%d; return ", *pid);
+				if (*status == EXIT_SUCCESS) {
+					fprintf(stdout, "OK)\n");
+				}
+				else {
+					fprintf(stdout, "NOK)\n");
+				}
+			}
 			fprintf(stdout, "END.\n");
 			break;
 			}
