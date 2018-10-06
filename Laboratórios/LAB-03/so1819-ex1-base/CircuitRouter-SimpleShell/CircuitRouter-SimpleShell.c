@@ -2,13 +2,14 @@
 #include <string.h>
 #include <err.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "CircuitRouter-SimpleShell.h"
 
-
-#define MAX_COMMAND_LENGTH 6
+#define MAX_BUFFER 256
+#define TRUE 1
 
 int main(int argc, char** argv) {
-	char command[MAX_COMMAND_LENGTH];
+	char command[MAX_BUFFER];
 	char c;
 	int i;
 	long long maxchildren;
@@ -30,13 +31,44 @@ int main(int argc, char** argv) {
 	fprintf(stdout, "                        CIRCUIT ROUTER - SIMPLE SHELL\n\n");
 	fprintf(stdout, "******************************************************************************\n");
 
-	while (strcmp(command, "exit")) {
+	while (TRUE){
 		fprintf(stdout, "$ ");
-		for (i = 0; (c=getchar())!=' ' || c!='\n'; i++) {
+		for (i = 0; (c = getchar()) != ' ' || c != '\n'; i++) {
 			command[i]=c;
 		}
+		command[i+1] = '\0';
+		if (!strcmp(command, "run")) {
+			if (c == ' ') {	
+				for (i = 0; (c = getchar()) != '\n'; i++) {
+					command[i]=c;
+				}
+				command[i+1] = '\0';  
+				if (access(command, R_OK)) {
+					fprintf(stderr, "run: input file is unreadable");
+				}
+				else {
+					// TODO execute CircuitRouter-SeqSolver
+				}
+			}
+			else {
+				fprintf(stderr, "run: missing file operand");
+			}
+		}
+		
+		else if (!strcmp(command, "exit") && c == '\n')	{
+			if (c == '\n') {
+			// TODO waits until all children end, outputs result and exits app
+			fprintf(stdout, "END.");
+			break;
+			}
+			else {
+				fprintf(stderr, "exit: too many arguments");
+			}
+		}
+		else {
+			fprintf(stderr, "%s: command not found", command);
+		}
 	}
-	// TODO if exit then wait
 	return 0;
 }
 
