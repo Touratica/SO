@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
 	int i;
 	long long maxchildren;
 
+
 	if (argc==2){
 		for (i=0; (c = argv[1][i]) != '\0'; i++){
 			if (c < '0' || c > '9') {
@@ -20,21 +21,28 @@ int main(int argc, char** argv) {
 				displayUsage(argv[0]);
 			}
 		}
-		maxchildren = atoll(argv[1]);
-		if (maxchildren < 0) {
+		maxchildren = atoll(argv[1]); //string->long long
+		if (maxchildren < 0) { // if maxchildren > LLONG_MAX
 			errx(1, "%s: not a valid MAXCHILDREN number", argv[0]);
 		}
 	}
+	fprintf(stdout, "******************************************************************************\n\n");
+	fprintf(stdout, "                        CIRCUIT ROUTER - SIMPLE SHELL\n\n");
+	fprintf(stdout, "******************************************************************************\n");
 
-	fprintf(stdout, "$ ");
-	for (i = 0; (c=getchar())!=' ' || c!='\n'; i++) {
-		command[i]=c;
+	while (strcmp(command, "exit")) {
+		fprintf(stdout, "$ ");
+		for (i = 0; (c=getchar())!=' ' || c!='\n'; i++) {
+			command[i]=c;
+		}
 	}
+	// TODO if exit then wait
 	return 0;
 }
 
 static void displayUsage (const char* appName){
 	printf("Usage: %s [MAXCHILDREN]\n", appName);
-	printf("\tMAXCHILDREN defines the limit of child processes allowed\n");
+	printf("\tMAXCHILDREN defines the limit of child processes allowed.\n");
+	printf("\tIf MAXCHILDREN equals 0, the number is unlimited.");
 	exit(1);
 }
