@@ -54,6 +54,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include "coordinate.h"
 #include "grid.h"
 #include "lib/list.h"
@@ -150,7 +152,7 @@ static void addToGrid (grid_t* gridPtr, vector_t* vectorPtr, char* type){
  * =============================================================================
  */
 
-long maze_read (maze_t* mazePtr,char* filename){
+long maze_read (maze_t* mazePtr, char* filename){
 
 	/*
 	 * Parse input from stdin
@@ -273,12 +275,15 @@ long maze_read (maze_t* mazePtr,char* filename){
  * maze_checkPaths
  * =============================================================================
  */
-bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathVectorListPtr, bool_t doPrintPaths){
+bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathVectorListPtr, char* filename){
 	grid_t* gridPtr = mazePtr->gridPtr;
 	long width  = gridPtr->width;
 	long height = gridPtr->height;
 	long depth  = gridPtr->depth;
 	long i;
+	char* newFilename;
+	char* oldFilename;
+	FILE* fptr;
 
 	/* Mark walls */
 	grid_t* testGridPtr = grid_alloc(width, height, depth);
@@ -362,10 +367,26 @@ bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathVectorListPtr, bool_t doPri
 		} /* iteratate over pathVector */
 	} /* iterate over pathVectorList */
 
-	if (doPrintPaths) {
-		puts("\nRouted Maze:");
-		grid_print(testGridPtr);
+	newFilename = (char*) malloc(sizeof(char) * (strlen(filename) + 5));
+	oldFilename = (char*) malloc(sizeof(char) * (strlen(filename) + 9));
+	strcpy(newFilename, filename);
+	strcat(newFilename,".res");
+	strcpy(oldFilename, newFilename);
+	strcat(oldFilename, ".old");
+
+	if (!access(newFilename, F_OK)) {
+		rename(newFilename, oldFilename);
+		// if oldFilename exists, it's overriden
 	}
+
+	fptr = fopen(newFilename, "w");
+	fputs("\nRouted Maze:", fptr);
+	fclose(fptr);
+
+	grid_print(testGridPtr, newFilename);
+
+	free(newFilename);
+	free(oldFilename);
 
 	grid_free(testGridPtr);
 

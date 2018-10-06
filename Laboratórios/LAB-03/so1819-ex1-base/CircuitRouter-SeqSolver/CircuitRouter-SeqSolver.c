@@ -204,7 +204,7 @@ int main(int argc, char** argv){
 	 * Check solution and clean up
 	 */
 	assert(numPathRouted <= numPathToRoute);
-	bool_t status = maze_checkPaths(mazePtr, pathVectorListPtr, global_doPrint);
+	bool_t status = maze_checkPaths(mazePtr, pathVectorListPtr, argv[argc-1]);
 	assert(status == TRUE);
 	puts("Verification passed.");
 

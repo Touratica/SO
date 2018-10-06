@@ -91,14 +91,14 @@ void maze_free (maze_t* mazePtr);
  * -- Return number of path to route
  * =============================================================================
  */
-long maze_read (maze_t* mazePtr,char* filename);
+long maze_read (maze_t* mazePtr, char* filename);
 
 
 /* =============================================================================
  * maze_checkPaths
  * =============================================================================
  */
-bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathListPtr, bool_t doPrintPaths);
+bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathListPtr, char* filename);
 
 
 #endif /* MAZE_H */
