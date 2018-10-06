@@ -238,7 +238,7 @@ void grid_print (grid_t* gridPtr, char* filename){
 
     fptr = fopen(filename, "a");
     for (z = 0; z < depth; z++) {
-        fprintf(fptr, "[z = %li]\n", z);
+        fprintf(fptr, "\n[z = %li]\n", z);
         long x;
         for (x = 0; x < width; x++) {
             long y;

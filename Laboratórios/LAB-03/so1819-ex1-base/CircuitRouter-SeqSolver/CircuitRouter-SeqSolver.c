@@ -56,6 +56,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include "lib/list.h"
 #include "maze.h"
 #include "router.h"
@@ -174,11 +175,25 @@ int main(int argc, char** argv){
 	/*
 	 * Initialization
 	 */
+	FILE* fptr;
+	char* newFilename;
+	char* oldFilename;
 	parseArgs(argc, (char** const)argv);
 	maze_t* mazePtr = maze_alloc();
 	assert(mazePtr);
+	
+	newFilename = (char*) malloc(sizeof(char) * (strlen(argv[argc-1]) + 5));
+	oldFilename = (char*) malloc(sizeof(char) * (strlen(argv[argc-1]) + 9));
+	strcpy(newFilename, argv[argc-1]);
+	strcat(newFilename,".res");
+	strcpy(oldFilename, newFilename);
+	strcat(oldFilename, ".old");
 
-	long numPathToRoute = maze_read(mazePtr,argv[argc-1]);
+	if (!access(newFilename, F_OK)) {
+		rename(newFilename, oldFilename);
+		// if oldFilename exists, it's overriden
+	}
+	long numPathToRoute = maze_read(mazePtr, argv[argc-1], newFilename);
 	router_t* routerPtr = router_alloc(global_params[PARAM_XCOST],
 									   global_params[PARAM_YCOST],
 									   global_params[PARAM_ZCOST],
@@ -203,17 +218,22 @@ int main(int argc, char** argv){
 		vector_t* pathVectorPtr = (vector_t*)list_iter_next(&it, pathVectorListPtr);
 		numPathRouted += vector_getSize(pathVectorPtr);
 	}
-	printf("Paths routed    = %li\n", numPathRouted);
-	printf("Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));
 
+
+	fptr = fopen(newFilename, "a"); // TODO
+	fprintf(fptr, "Paths routed    = %li\n", numPathRouted);
+	fprintf(fptr, "Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));
+	fclose(fptr);
 
 	/*
 	 * Check solution and clean up
 	 */
 	assert(numPathRouted <= numPathToRoute);
-	bool_t status = maze_checkPaths(mazePtr, pathVectorListPtr, argv[argc-1]);
+	bool_t status = maze_checkPaths(mazePtr, pathVectorListPtr, newFilename);
 	assert(status == TRUE);
-	puts("Verification passed.");
+	fptr = fopen(newFilename, "a");
+	fputs("\nVerification passed.", fptr);
+	fclose(fptr);
 
 	maze_free(mazePtr);
 	router_free(routerPtr);

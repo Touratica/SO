@@ -152,7 +152,7 @@ static void addToGrid (grid_t* gridPtr, vector_t* vectorPtr, char* type){
  * =============================================================================
  */
 
-long maze_read (maze_t* mazePtr, char* filename){
+long maze_read (maze_t* mazePtr, char* filename, char* resFilename){
 
 	/*
 	 * Parse input from stdin
@@ -242,8 +242,9 @@ long maze_read (maze_t* mazePtr, char* filename){
 	/*
 	 * Initialize grid contents
 	 */
+	fptr = fopen(resFilename, "w");
 	if (width < 1 || height < 1 || depth < 1) {
-		fprintf(stderr, "Error: Invalid dimensions (%li, %li, %li)\n",
+		fprintf(fptr, "Error: Invalid dimensions (%li, %li, %li)\n",
 				width, height, depth);
 		exit(1);
 	}
@@ -253,9 +254,9 @@ long maze_read (maze_t* mazePtr, char* filename){
 	addToGrid(gridPtr, wallVectorPtr, "wall");
 	addToGrid(gridPtr, srcVectorPtr,  "source");
 	addToGrid(gridPtr, dstVectorPtr,  "destination");
-	printf("Maze dimensions = %li x %li x %li\n", width, height, depth);
-	printf("Paths to route  = %li\n", list_getSize(workListPtr));
-
+	fprintf(fptr, "Maze dimensions = %li x %li x %li\n", width, height, depth);
+	fprintf(fptr, "Paths to route  = %li\n", list_getSize(workListPtr));
+	fclose(fptr);
 	/*
 	 * Initialize work queue
 	 */
@@ -281,8 +282,6 @@ bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathVectorListPtr, char* filena
 	long height = gridPtr->height;
 	long depth  = gridPtr->depth;
 	long i;
-	char* newFilename;
-	char* oldFilename;
 	FILE* fptr;
 
 	/* Mark walls */
@@ -367,26 +366,11 @@ bool_t maze_checkPaths (maze_t* mazePtr, list_t* pathVectorListPtr, char* filena
 		} /* iteratate over pathVector */
 	} /* iterate over pathVectorList */
 
-	newFilename = (char*) malloc(sizeof(char) * (strlen(filename) + 5));
-	oldFilename = (char*) malloc(sizeof(char) * (strlen(filename) + 9));
-	strcpy(newFilename, filename);
-	strcat(newFilename,".res");
-	strcpy(oldFilename, newFilename);
-	strcat(oldFilename, ".old");
-
-	if (!access(newFilename, F_OK)) {
-		rename(newFilename, oldFilename);
-		// if oldFilename exists, it's overriden
-	}
-
-	fptr = fopen(newFilename, "w");
-	fputs("\nRouted Maze:", fptr);
+	fptr = fopen(filename, "a");
+	fputs("Routed Maze:", fptr);
 	fclose(fptr);
 
-	grid_print(testGridPtr, newFilename);
-
-	free(newFilename);
-	free(oldFilename);
+	grid_print(testGridPtr, filename);
 
 	grid_free(testGridPtr);
 

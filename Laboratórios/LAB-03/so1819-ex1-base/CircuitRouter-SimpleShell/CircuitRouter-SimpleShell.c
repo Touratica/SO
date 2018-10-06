@@ -3,6 +3,8 @@
 #include <err.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "CircuitRouter-SimpleShell.h"
 
 #define MAX_BUFFER 256
@@ -12,7 +14,11 @@ int main(int argc, char** argv) {
 	char buffer[MAX_BUFFER], pathbuffer[MAX_BUFFER], inputbuffer[MAX_BUFFER];
 	char c;
 	int i;
-	long long maxchildren;
+	int status;
+	long long maxchildren = 0;
+	long long n_child = 0;
+	__pid_t* pids; 
+	__pid_t pid;
 
 	if (argc > 2) {
 		fprintf(stderr, "%s: too many arguments\n", argv[0]);
@@ -30,12 +36,15 @@ int main(int argc, char** argv) {
 			errx(1, "%s: not a valid MAXCHILDREN number", argv[0]);
 		}
 	}
+	if (maxchildren != 0) {
+		pids = (__pid_t*) malloc(sizeof(__pid_t) * maxchildren);
+	}
 	fprintf(stdout, "******************************************************************************\n\n");
 	fprintf(stdout, "                        CIRCUIT ROUTER - SIMPLE SHELL\n\n");
 	fprintf(stdout, "******************************************************************************\n");
 
 	while (TRUE){
-		fprintf(stdout, "$ ");
+		fprintf(stdout, "Circuit Router$ ");
 		for (i = 0; (c = getchar()) != ' ' && c != '\n'; i++) {
 			buffer[i]=c; // gets command
 		}
@@ -51,16 +60,25 @@ int main(int argc, char** argv) {
 					strcpy(inputbuffer, pathbuffer);
 					strcat(inputbuffer, "/");
 					strcat(inputbuffer, buffer);
+					if (access(inputbuffer, R_OK)) {
+						fprintf(stderr, "run: input file is unreadable\n");
+					}
+					else {
+						strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
+						if (++n_child > maxchildren) {
+							pid = wait(&status);
+							n_child--;
+						}
+						i = 0;
+						while (pids[i++] == 0);
+						pids[i] = fork();
+						if (pids[i] == 0) {
+							execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL);
+						}
+					}
 				}
 				else {
-					// TODO error inputfile path is too long
-				}
-				if (access(inputbuffer, R_OK)) {
-					fprintf(stderr, "run: input file is unreadable\n");
-				}
-				else {
-					strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-					execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL);
+					fprintf(stderr, "run: inputfile path too long\n");
 				}
 			}
 			else {
@@ -80,7 +98,7 @@ int main(int argc, char** argv) {
 		}
 		else {
 			fprintf(stderr, "%s: command not found\n", buffer);
-			while (getchar() != '\n');
+			while (c != '\n' && getchar() != '\n');
 		}
 	}
 	return 0;
