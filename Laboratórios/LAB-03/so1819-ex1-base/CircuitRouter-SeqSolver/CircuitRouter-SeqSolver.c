@@ -142,19 +142,26 @@ static void parseArgs (long argc, char* const argv[]){
 				break;
 		}
 	}
-
 	// getopt permutes the content of argv, the non options are at the end
 	for (i = optind; i < argc; i++) {
 		if (access(argv[i], R_OK)) {
-        	fprintf(stderr, "Non-option argument: %s\n", argv[i]);
+        	fprintf(stderr, "%s: Non-option argument: %s\n", argv[0], argv[i]);
         	opterr++;
+			break;
 		}
 		else {
-			n_files++;
+			if (++n_files > 1) {
+				fprintf(stderr, "%s: too many files\n", argv[0]);
+				opterr++;
+				break;
+			}
 		}
     }
-
-    if (opterr || n_files > 1 || n_files == 0) {
+	if (n_files == 0 && opterr != 1) {
+		fprintf(stderr, "%s: missing file operand\n", argv[0]);
+		opterr++;
+	}
+    if (opterr) {
         displayUsage(argv[0]);
     }
 }
