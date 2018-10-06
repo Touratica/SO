@@ -132,10 +132,10 @@ static void parseArgs (long argc, char* const argv[]){
 			case 'z':
 				global_params[(unsigned char)opt] = atol(optarg);
 				break;
-/*          case 'p':
+/* 			case 'p':
 				global_doPrint = TRUE;
-				break;*/
-			case '?':
+				break;
+ */			case '?':
 			case 'h':
 			default:
 				opterr++;
@@ -154,7 +154,7 @@ static void parseArgs (long argc, char* const argv[]){
 		}
     }
 
-    if (opterr || n_files > 2 || n_files == 0) {
+    if (opterr || n_files > 1 || n_files == 0) {
         displayUsage(argv[0]);
     }
 }

@@ -172,7 +172,7 @@ long maze_read (maze_t* mazePtr,char* filename){
 		char code;
 		long x1, y1, z1;
 		long x2, y2, z2;
-		long numToken = fscanf(fptr, line, " %c %li %li %li %li %li %li",
+		long numToken = sscanf(line, " %c %li %li %li %li %li %li",
 							   &code, &x1, &y1, &z1, &x2, &y2, &z2);
 
 		lineNumber++;
