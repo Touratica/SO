@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
+#include <err.h>
 #include <stdlib.h>
 #include "CircuitRouter-SimpleShell.h"
 
@@ -11,8 +11,7 @@ int main(int argc, char** argv) {
 	char command[MAX_COMMAND_LENGTH];
 	char c;
 	int i;
-	const long long maxchildren;
-	const char* errstr;
+	long long maxchildren;
 
 	if (argc==2){
 		for (i=0; (c = argv[1][i]) != '\0'; i++){
@@ -21,22 +20,21 @@ int main(int argc, char** argv) {
 				displayUsage(argv[0]);
 			}
 		}
-		maxchildren = strtonum(argv[1], 0, LLONG_MAX, &errstr);
-		if (errstr) {
+		maxchildren = atoll(argv[1]);
+		if (maxchildren < 0) {
 			errx(1, "%s: not a valid MAXCHILDREN number", argv[0]);
 		}
 	}
 
 	fprintf(stdout, "$ ");
-	//fgets(command, sizeof(command), stdin);
-	for ((i = 0; c=getchar())!=' ' || c='\n'; i++) {
+	for (i = 0; (c=getchar())!=' ' || c!='\n'; i++) {
 		command[i]=c;
 	}
 	return 0;
 }
 
 static void displayUsage (const char* appName){
-	printf("Usage: %s [MAXCHILDREN]\n", argv[0]);
+	printf("Usage: %s [MAXCHILDREN]\n", appName);
 	printf("\tMAXCHILDREN defines the limit of child processes allowed\n");
 	exit(1);
 }
