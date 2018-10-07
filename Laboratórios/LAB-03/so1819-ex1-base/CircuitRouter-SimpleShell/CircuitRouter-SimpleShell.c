@@ -11,6 +11,11 @@
 #define MAX_BUFFER 256
 #define TRUE 1
 
+struct process {
+	int status;
+	__pid_t pid;
+};
+
 int main(int argc, char** argv) {
 	char buffer[MAX_BUFFER], pathbuffer[MAX_BUFFER], inputbuffer[MAX_BUFFER];
 	char c;
@@ -65,8 +70,10 @@ int main(int argc, char** argv) {
 						strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
 						if ((n_child+1) > maxchildren && maxchildren > 0) {
 							pid = wait(&status);
-							queue_push(childQueue, &pid);
-							queue_push(childQueue, &status);
+							t_process process = (t_process) malloc(sizeof(process));
+							process->pid = pid;
+							process->status = status; 
+							queue_push(childQueue, process);
 							n_child--;
 						}
 						pid = fork();
@@ -93,22 +100,24 @@ int main(int argc, char** argv) {
 		else if (!strcmp(buffer, "exit") && c == '\n')	{
 			if (c == '\n') {
 				for (n = n_child; n > 0; n--) {
-					int status;
-					int pid = wait(&status);
-					printf("pid: %d\n", pid);
-					queue_push(childQueue, &pid);
-					queue_push(childQueue, &status);
+					pid = wait(&status);
+					t_process process = (t_process) malloc(sizeof(process));
+					process->pid = pid;
+					process->status = status; 
+					queue_push(childQueue, process);
 				}
 				while (!queue_isEmpty(childQueue)) {
-					__pid_t* pid = (__pid_t*) queue_pop(childQueue);
-					int* status = (int*) queue_pop(childQueue);
-					fprintf(stdout, "CHILD EXITED (PID=%d; return ", *pid);
-					if (*status == EXIT_SUCCESS) {
+					t_process process = (t_process) queue_pop(childQueue);
+					pid = process->pid;
+					status = process->status;
+					fprintf(stdout, "CHILD EXITED (PID=%d; return ", pid);
+					if (status == EXIT_SUCCESS) {
 						fprintf(stdout, "OK)\n");
 					}
 					else {
 						fprintf(stdout, "NOK)\n");
 					}
+					free(process);
 				}
 				fprintf(stdout, "END.\n");
 				break;
