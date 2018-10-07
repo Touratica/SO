@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "CircuitRouter-SimpleShell.h"
-#include "../lib/queue.h"
+#include "lib/queue.h"
 
 #define MAX_BUFFER 256
 #define TRUE 1
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 	fprintf(stdout, "******************************************************************************\n\n");
 	fprintf(stdout, "                        CIRCUIT ROUTER - SIMPLE SHELL\n\n");
 	fprintf(stdout, "******************************************************************************\n");
-	childQueue = queue_alloc(10);
+	childQueue = queue_alloc(-1);
 	while (TRUE){
 		fprintf(stdout, "Circuit Router$ ");
 		for (i = 0; (c = getchar()) != ' ' && c != '\n'; i++) {
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 					}
 					else {
 						strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-						if (++n_child > maxchildren && maxchildren > 0) {
+						if ((n_child+1) > maxchildren && maxchildren > 0) {
 							pid = wait(&status);
 							queue_push(childQueue, &pid);
 							queue_push(childQueue, &status);
@@ -92,24 +92,26 @@ int main(int argc, char** argv) {
 		
 		else if (!strcmp(buffer, "exit") && c == '\n')	{
 			if (c == '\n') {
-			for (n = n_child; n > 0; n--) {
-				pid = wait(&status);
-				queue_push(childQueue, &pid);
-				queue_push(childQueue, &status);
-			}
-			while (!queue_isEmpty(childQueue)) {
-				int* status = (int*) queue_pop(childQueue);
-				__pid_t* pid = (__pid_t*) queue_pop(childQueue);
-				fprintf(stdout, "CHILD EXITED (PID=%d; return ", *pid);
-				if (*status == EXIT_SUCCESS) {
-					fprintf(stdout, "OK)\n");
+				for (n = n_child; n > 0; n--) {
+					int status;
+					int pid = wait(&status);
+					printf("pid: %d\n", pid);
+					queue_push(childQueue, &pid);
+					queue_push(childQueue, &status);
 				}
-				else {
-					fprintf(stdout, "NOK)\n");
+				while (!queue_isEmpty(childQueue)) {
+					__pid_t* pid = (__pid_t*) queue_pop(childQueue);
+					int* status = (int*) queue_pop(childQueue);
+					fprintf(stdout, "CHILD EXITED (PID=%d; return ", *pid);
+					if (*status == EXIT_SUCCESS) {
+						fprintf(stdout, "OK)\n");
+					}
+					else {
+						fprintf(stdout, "NOK)\n");
+					}
 				}
-			}
-			fprintf(stdout, "END.\n");
-			break;
+				fprintf(stdout, "END.\n");
+				break;
 			}
 			else {
 				fprintf(stderr, "exit: too many arguments\n");
