@@ -8,9 +8,6 @@
 #include "CircuitRouter-SimpleShell.h"
 #include "lib/queue.h"
 
-#define MAX_BUFFER 256
-#define TRUE 1
-
 struct process {
 	int status;
 	__pid_t pid;
@@ -68,9 +65,9 @@ int main(int argc, char** argv) {
 					}
 					else {
 						strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-						if ((n_child+1) > maxchildren && maxchildren > 0) {
+						if (n_child == maxchildren && maxchildren > 0) {
 							pid = wait(&status);
-							t_process process = (t_process) malloc(sizeof(process));
+							process_t process = (process_t) malloc(sizeof(process));
 							process->pid = pid;
 							process->status = status; 
 							queue_push(childQueue, process);
@@ -101,13 +98,13 @@ int main(int argc, char** argv) {
 			if (c == '\n') {
 				for (n = n_child; n > 0; n--) {
 					pid = wait(&status);
-					t_process process = (t_process) malloc(sizeof(process));
+					process_t process = (process_t) malloc(sizeof(process));
 					process->pid = pid;
 					process->status = status; 
 					queue_push(childQueue, process);
 				}
 				while (!queue_isEmpty(childQueue)) {
-					t_process process = (t_process) queue_pop(childQueue);
+					process_t process = (process_t) queue_pop(childQueue);
 					pid = process->pid;
 					status = process->status;
 					fprintf(stdout, "CHILD EXITED (PID=%d; return ", pid);
@@ -119,6 +116,7 @@ int main(int argc, char** argv) {
 					}
 					free(process);
 				}
+				queue_free(childQueue);
 				fprintf(stdout, "END.\n");
 				break;
 			}
