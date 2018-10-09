@@ -60,7 +60,10 @@ int main(int argc, char** argv) {
 					strcpy(inputbuffer, pathbuffer);
 					strcat(inputbuffer, "/");
 					strcat(inputbuffer, buffer);
-					if (access(inputbuffer, R_OK)) {
+					if (access(inputbuffer, F_OK)) {
+						fprintf(stderr, "run: no such file or directory\n");
+					}
+					else if (access(inputbuffer, R_OK)) {
 						fprintf(stderr, "run: input file is unreadable\n");
 					}
 					else {
@@ -75,7 +78,11 @@ int main(int argc, char** argv) {
 						}
 						pid = fork();
 						n_child++;
-						if (pid == 0) {
+						if (pid == 	-1) { //TODO ,sg erro0
+							fprintf(stderr, "run: execution failed");
+							n_child--;
+						}
+						else if (pid == 0){
 							if (execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL) == -1) {
 								exit(EXIT_FAILURE);
 							}
