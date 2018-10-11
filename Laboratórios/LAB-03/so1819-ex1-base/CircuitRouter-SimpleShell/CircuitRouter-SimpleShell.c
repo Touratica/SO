@@ -44,7 +44,6 @@ int main(int argc, char** argv) {
 	fprintf(stdout, "******************************************************************************\n");
 	childQueue = queue_alloc(-1);
 	while (TRUE){
-		sleep(1);
 		fprintf(stdout, "Circuit Router$ ");
 		for (i = 0; (c = getchar()) != ' ' && c != '\n'; i++) {
 			buffer[i]=c; // gets command
