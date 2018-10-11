@@ -87,14 +87,14 @@ long global_params[256]; /* 256 = ascii limit */
  * =============================================================================
  */
 static void displayUsage (const char* appName){
-	printf("Usage: %s [options] <filename>\n", appName);
-	puts("\nOptions:                            (defaults)\n");
-	printf("    b <INT>    [b]end cost          (%i)\n", PARAM_DEFAULT_BENDCOST);
-	// printf("    p          [p]rint routed maze  (false)\n");
-	printf("    x <UINT>   [x] movement cost    (%i)\n", PARAM_DEFAULT_XCOST);
-	printf("    y <UINT>   [y] movement cost    (%i)\n", PARAM_DEFAULT_YCOST);
-	printf("    z <UINT>   [z] movement cost    (%i)\n", PARAM_DEFAULT_ZCOST);
-	printf("    h          [h]elp message       (false)\n");
+	fprintf(stderr, "Usage: %s [options] <filename>\n", appName);
+	fputs("\nOptions:                            (defaults)\n", stderr);
+	fprintf(stderr, "    b <INT>    [b]end cost          (%i)\n", PARAM_DEFAULT_BENDCOST);
+	// fprintf(stderr, "    p          [p]rint routed maze  (false)\n");
+	fprintf(stderr, "    x <UINT>   [x] movement cost    (%i)\n", PARAM_DEFAULT_XCOST);
+	fprintf(stderr, "    y <UINT>   [y] movement cost    (%i)\n", PARAM_DEFAULT_YCOST);
+	fprintf(stderr, "    z <UINT>   [z] movement cost    (%i)\n", PARAM_DEFAULT_ZCOST);
+	fprintf(stderr, "    h          [h]elp message       (false)\n");
 	exit(1);
 }
 

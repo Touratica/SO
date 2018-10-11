@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
 	fprintf(stdout, "******************************************************************************\n");
 	childQueue = queue_alloc(-1);
 	while (TRUE){
+		sleep(1);
 		fprintf(stdout, "Circuit Router$ ");
 		for (i = 0; (c = getchar()) != ' ' && c != '\n'; i++) {
 			buffer[i]=c; // gets command
@@ -60,35 +61,33 @@ int main(int argc, char** argv) {
 					strcpy(inputbuffer, pathbuffer);
 					strcat(inputbuffer, "/");
 					strcat(inputbuffer, buffer);
-					if (access(inputbuffer, F_OK)) {
+/* 					if (access(inputbuffer, F_OK)) {
 						fprintf(stderr, "run: no such file or directory\n");
 					}
 					else if (access(inputbuffer, R_OK)) {
 						fprintf(stderr, "run: input file is unreadable\n");
 					}
-					else {
-						strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-						if (n_child == maxchildren && maxchildren > 0) {
-							pid = wait(&status);
-							process_t process = (process_t) malloc(sizeof(process));
-							process->pid = pid;
-							process->status = status; 
-							queue_push(childQueue, process);
-							n_child--;
+ */					strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
+					if (n_child == maxchildren && maxchildren > 0) {
+						pid = wait(&status);
+						process_t process = (process_t) malloc(sizeof(process));
+						process->pid = pid;
+						process->status = status; 
+						queue_push(childQueue, process);
+						n_child--;
+					}
+					pid = fork();
+					n_child++;
+					if (pid == 	-1) {
+						fprintf(stderr, "run: execution failed");
+						n_child--;
+					}
+					else if (pid == 0){
+						if (execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL) == -1) {
+							exit(EXIT_FAILURE);
 						}
-						pid = fork();
-						n_child++;
-						if (pid == 	-1) { //TODO ,sg erro0
-							fprintf(stderr, "run: execution failed");
-							n_child--;
-						}
-						else if (pid == 0){
-							if (execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL) == -1) {
-								exit(EXIT_FAILURE);
-							}
-							else {
-								exit(EXIT_SUCCESS);
-							}
+						else {
+							exit(EXIT_SUCCESS);
 						}
 					}
 				}
@@ -115,7 +114,7 @@ int main(int argc, char** argv) {
 					pid = process->pid;
 					status = process->status;
 					fprintf(stdout, "CHILD EXITED (PID=%d; return ", pid);
-					if (status == EXIT_SUCCESS) {
+					if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
 						fprintf(stdout, "OK)\n");
 					}
 					else {
