@@ -1,21 +1,28 @@
-# Makefile, versao 1
+# Makefile, versao 2
 # Sistemas Operativos, DEI/IST/ULisboa 2018-19
 
-SOURCES = ../CircuitRouter-SeqSolver/router.c ../CircuitRouter-SeqSolver/maze.c ../CircuitRouter-SeqSolver/grid.c ../CircuitRouter-SeqSolver/coordinate.c CircuitRouter-SimpleShell.c
+SOURCES = ../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver.c ../CircuitRouter-SeqSolver/router.c ../CircuitRouter-SeqSolver/maze.c ../CircuitRouter-SeqSolver/grid.c ../CircuitRouter-SeqSolver/coordinate.c
 SOURCES+= ../lib/vector.c ../lib/queue.c ../lib/list.c ../lib/pair.c
+NEWSOURCES=CircuitRouter-SimpleShell.c
+# NEWSOURCES+= ../lib/queue.c
 OBJS = $(SOURCES:%.c=%.o)
+NEWOBJS = $(NEWSOURCES:%.c=%.o)
 CC   = gcc
 CFLAGS =-g -Wall -std=gnu99 -I../
 LDFLAGS=-lm
-TARGET=CircuitRouter-SeqSolver
+TARGET=../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver
 NEWTARGET = CircuitRouter-SimpleShell
 
-all: $(NEWTARGET)
+all: $(TARGET) $(NEWTARGET)
 
-$(NEWTARGET): $(OBJS)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $(TARGET) $(LDFLAGS)
+
+$(NEWTARGET): $(NEWOBJS) ../lib/queue.o
 	$(CC) $(CFLAGS) $^ -o $(NEWTARGET) $(LDFLAGS)
 
-CircuitRouter-SimpleShell.o: CircuitRouter-SimpleShell.c CircuitRouter-SimpleShell.h ../CircuitRouter-SeqSolver/maze.h ../CircuitRouter-SeqSolver/router.h ../lib/list.h ../lib/timer.h ../lib/types.h
+CircuitRouter-SimpleShell.o: CircuitRouter-SimpleShell.c CircuitRouter-SimpleShell.h ../lib/queue.h
+../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver.o: ../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver.c ../CircuitRouter-SeqSolver/maze.h ../CircuitRouter-SeqSolver/router.h ../lib/list.h ../lib/timer.h ../lib/types.h
 ../CircuitRouter-SeqSolver/router.o: ../CircuitRouter-SeqSolver/router.c ../CircuitRouter-SeqSolver/router.h ../CircuitRouter-SeqSolver/coordinate.h ../CircuitRouter-SeqSolver/grid.h ../lib/queue.h ../lib/vector.h
 ../CircuitRouter-SeqSolver/maze.o: ../CircuitRouter-SeqSolver/maze.c ../CircuitRouter-SeqSolver/maze.h ../CircuitRouter-SeqSolver/coordinate.h ../CircuitRouter-SeqSolver/grid.h ../lib/list.h ../lib/queue.h ../lib/pair.h ../lib/types.h ../lib/vector.h
 ../CircuitRouter-SeqSolver/grid.o: ../CircuitRouter-SeqSolver/grid.c ../CircuitRouter-SeqSolver/grid.h ../CircuitRouter-SeqSolver/coordinate.h ../lib/types.h ../lib/vector.h
@@ -28,7 +35,9 @@ CircuitRouter-SimpleShell.o: CircuitRouter-SimpleShell.c CircuitRouter-SimpleShe
 $(OBJS):
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+$(NEWOBJS):
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 clean:
 	@echo Cleaning...
-	rm -f $(OBJS) $(TARGET)
-	rm -f $(OBJS) $(NEWTARGET)
+	rm -f $(OBJS) $(TARGET) $(NEWOBJS) $(NEWTARGET)
