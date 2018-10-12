@@ -22,6 +22,7 @@ int main(int argc, char** argv) {
 	long long n_child = 0, n;
 	__pid_t pid;
 	queue_t* childQueue;
+	int changedLine = FALSE;
 
 	if (argc > 2) {
 		fprintf(stderr, "%s: too many arguments\n", argv[0]);
@@ -52,50 +53,52 @@ int main(int argc, char** argv) {
 
 		if (!strcmp(buffer, "run")) {
 			if (c == ' ') {
+				changedLine = FALSE;
 				for (i = 0; (c = getchar()) != '\n'; i++) {
 					buffer[i] = c; // gets inputfile
 				}
 				buffer[i] = '\0';
-				if (getcwd(pathbuffer, sizeof(pathbuffer)) != NULL) {
+			}
+			else {
+				changedLine = TRUE;
+			}
+			if (getcwd(pathbuffer, sizeof(pathbuffer)) != NULL) {
+				if (!changedLine){ 
 					strcpy(inputbuffer, pathbuffer);
 					strcat(inputbuffer, "/");
 					strcat(inputbuffer, buffer);
-/* 					if (access(inputbuffer, F_OK)) {
-						fprintf(stderr, "run: no such file or directory\n");
-					}
-					else if (access(inputbuffer, R_OK)) {
-						fprintf(stderr, "run: input file is unreadable\n");
-					}
- */					strcat(pathbuffer, "/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-					if (n_child == maxchildren && maxchildren > 0) {
-						pid = wait(&status);
-						process_t process = (process_t) malloc(sizeof(process));
-						process->pid = pid;
-						process->status = status; 
-						queue_push(childQueue, process);
-						n_child--;
-					}
-					pid = fork();
-					n_child++;
-					if (pid == 	-1) {
-						fprintf(stderr, "run: execution failed");
-						n_child--;
-					}
-					else if (pid == 0){
-						if (execl(pathbuffer, "./CircuitRouter-SeqSolver", inputbuffer, NULL) == -1) {
-							exit(EXIT_FAILURE);
-						}
-						else {
-							exit(EXIT_SUCCESS);
-						}
-					}
 				}
-				else {
-					fprintf(stderr, "run: inputfile path too long\n");
+				strcat(pathbuffer,
+				"/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
+				if (n_child == maxchildren && maxchildren > 0) {
+					pid = wait(&status);
+					process_t process = (process_t) malloc(sizeof(process));
+					process->pid = pid;
+					process->status = status; 
+					queue_push(childQueue, process);
+					n_child--;
+				}
+				pid = fork();
+				n_child++;
+				if (pid == -1) {
+					fprintf(stderr, "run: execution failed");
+					n_child--;
+					exit(EXIT_FAILURE);
+				}
+				else if (pid == 0){
+					if (changedLine){
+						execl(pathbuffer, "./CircuitRouter-SeqSolver", NULL);
+						exit(EXIT_FAILURE);
+					}
+					else {
+						execl(pathbuffer, "./CircuitRouter-SeqSolver",
+						 inputbuffer, NULL) == -1 ? exit(EXIT_FAILURE) :
+						 exit(EXIT_SUCCESS);
+					}
 				}
 			}
 			else {
-				fprintf(stderr, "run: missing file operand\n");
+				fprintf(stderr, "run: inputfile path too long\n");
 			}
 		}
 		

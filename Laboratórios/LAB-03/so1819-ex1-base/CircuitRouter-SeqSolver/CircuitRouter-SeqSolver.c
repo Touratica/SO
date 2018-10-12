@@ -77,8 +77,7 @@ enum param_defaults {
 	PARAM_DEFAULT_ZCOST    = 2,
 };
 
-bool_t global_doPrint = FALSE;
-char* global_inputFile = NULL;
+// TODO char* global_inputFile = NULL;
 long global_params[256]; /* 256 = ascii limit */
 
 
@@ -90,7 +89,6 @@ static void displayUsage (const char* appName){
 	fprintf(stderr, "Usage: %s [options] <filename>\n", appName);
 	fputs("\nOptions:                            (defaults)\n", stderr);
 	fprintf(stderr, "    b <INT>    [b]end cost          (%i)\n", PARAM_DEFAULT_BENDCOST);
-	// fprintf(stderr, "    p          [p]rint routed maze  (false)\n");
 	fprintf(stderr, "    x <UINT>   [x] movement cost    (%i)\n", PARAM_DEFAULT_XCOST);
 	fprintf(stderr, "    y <UINT>   [y] movement cost    (%i)\n", PARAM_DEFAULT_YCOST);
 	fprintf(stderr, "    z <UINT>   [z] movement cost    (%i)\n", PARAM_DEFAULT_ZCOST);
@@ -133,10 +131,7 @@ static void parseArgs (long argc, char* const argv[]){
 			case 'z':
 				global_params[(unsigned char)opt] = atol(optarg);
 				break;
-/* 			case 'p':
-				global_doPrint = TRUE;
-				break;
- */			case '?':
+			case '?':
 			case 'h':
 			default:
 				opterr++;
