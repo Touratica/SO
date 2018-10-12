@@ -4,7 +4,6 @@
 SOURCES = ../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver.c ../CircuitRouter-SeqSolver/router.c ../CircuitRouter-SeqSolver/maze.c ../CircuitRouter-SeqSolver/grid.c ../CircuitRouter-SeqSolver/coordinate.c
 SOURCES+= ../lib/vector.c ../lib/queue.c ../lib/list.c ../lib/pair.c
 NEWSOURCES=CircuitRouter-SimpleShell.c
-# NEWSOURCES+= ../lib/queue.c
 OBJS = $(SOURCES:%.c=%.o)
 NEWOBJS = $(NEWSOURCES:%.c=%.o)
 CC   = gcc

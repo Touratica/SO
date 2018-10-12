@@ -11,7 +11,7 @@
 struct process {
 	int status;
 	__pid_t pid;
-};
+}; // typedef *process_t
 
 int main(int argc, char** argv) {
 	char buffer[MAX_BUFFER], pathbuffer[MAX_BUFFER], inputbuffer[MAX_BUFFER];
@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
 	queue_t* childQueue;
 	int changedLine = FALSE;
 
+	// checks for arguments passed with the executable
 	if (argc > 2) {
 		fprintf(stderr, "%s: too many arguments\n", argv[0]);
 		displayUsage(argv[0]);
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
 	fprintf(stdout, "******************************************************************************\n\n");
 	fprintf(stdout, "                        CIRCUIT ROUTER - SIMPLE SHELL\n\n");
 	fprintf(stdout, "******************************************************************************\n");
-	childQueue = queue_alloc(-1);
+	childQueue = queue_alloc(-1); // creates queue to save the child pids and exit status
 	while (TRUE){
 		fprintf(stdout, "Circuit Router$ ");
 		for (i = 0; (c = getchar()) != ' ' && c != '\n'; i++) {
@@ -62,6 +63,8 @@ int main(int argc, char** argv) {
 			else {
 				changedLine = TRUE;
 			}
+			/* gets executable directory to get the inputfile and the SeqSolver
+			executable directories*/
 			if (getcwd(pathbuffer, sizeof(pathbuffer)) != NULL) {
 				if (!changedLine){ 
 					strcpy(inputbuffer, pathbuffer);
@@ -71,22 +74,25 @@ int main(int argc, char** argv) {
 				strcat(pathbuffer,
 				"/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
 				if (n_child == maxchildren && maxchildren > 0) {
+					/* if more processes than the user allowed are already
+					running, the parent waits until one ends*/
 					pid = wait(&status);
 					process_t process = (process_t) malloc(sizeof(process));
 					process->pid = pid;
 					process->status = status; 
 					queue_push(childQueue, process);
+					// pid and status are pushed to queue
 					n_child--;
 				}
 				pid = fork();
 				n_child++;
-				if (pid == -1) {
+				if (pid == -1) { // if fork fails
 					fprintf(stderr, "run: execution failed");
 					n_child--;
 					exit(EXIT_FAILURE);
 				}
 				else if (pid == 0){
-					if (changedLine){
+					if (changedLine){// if the user passes no arguments with run
 						execl(pathbuffer, "./CircuitRouter-SeqSolver", NULL);
 						exit(EXIT_FAILURE);
 					}
@@ -97,7 +103,7 @@ int main(int argc, char** argv) {
 					}
 				}
 			}
-			else {
+			else { // if the path doesn't fit the buffer
 				fprintf(stderr, "run: inputfile path too long\n");
 			}
 		}
@@ -105,13 +111,16 @@ int main(int argc, char** argv) {
 		else if (!strcmp(buffer, "exit") && c == '\n')	{
 			if (c == '\n') {
 				for (n = n_child; n > 0; n--) {
+					// waits until all run executions end
 					pid = wait(&status);
 					process_t process = (process_t) malloc(sizeof(process));
 					process->pid = pid;
 					process->status = status; 
 					queue_push(childQueue, process);
+					// pid and status are pushed to queue
 				}
 				while (!queue_isEmpty(childQueue)) {
+					// gets values from queue and prints children information for every run
 					process_t process = (process_t) queue_pop(childQueue);
 					pid = process->pid;
 					status = process->status;
@@ -128,11 +137,11 @@ int main(int argc, char** argv) {
 				fprintf(stdout, "END.\n");
 				break;
 			}
-			else {
+			else { // if exi is passed with arguments
 				fprintf(stderr, "exit: too many arguments\n");
 			}
 		}
-		else {
+		else { // if the user inputs an unknown command
 			fprintf(stderr, "%s: command not found\n", buffer);
 			while (c != '\n' && getchar() != '\n');
 		}
