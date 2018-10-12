@@ -14,7 +14,7 @@ struct process {
 }; // typedef *process_t
 
 int main(int argc, char** argv) {
-	char buffer[MAX_BUFFER], pathbuffer[MAX_BUFFER], inputbuffer[MAX_BUFFER];
+	char buffer[MAX_BUFFER];
 	char c;
 	int i;
 	int status;
@@ -63,48 +63,34 @@ int main(int argc, char** argv) {
 			else {
 				changedLine = TRUE;
 			}
-			/* gets executable directory to get the inputfile and the SeqSolver
-			executable directories*/
-			if (getcwd(pathbuffer, sizeof(pathbuffer)) != NULL) {
-				if (!changedLine){ 
-					strcpy(inputbuffer, pathbuffer);
-					strcat(inputbuffer, "/");
-					strcat(inputbuffer, buffer);
-				}
-				strcat(pathbuffer,
-				"/../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver");
-				if (n_child == maxchildren && maxchildren > 0) {
-					/* if more processes than the user allowed are already
-					running, the parent waits until one ends*/
-					pid = wait(&status);
-					process_t process = (process_t) malloc(sizeof(process));
-					process->pid = pid;
-					process->status = status; 
-					queue_push(childQueue, process);
-					// pid and status are pushed to queue
-					n_child--;
-				}
-				pid = fork();
-				n_child++;
-				if (pid == -1) { // if fork fails
-					fprintf(stderr, "run: execution failed");
-					n_child--;
+			if (n_child == maxchildren && maxchildren > 0) {
+				/* if more processes than the user allowed are already
+				running, the parent waits until one ends*/
+				pid = wait(&status);
+				process_t process = (process_t) malloc(sizeof(process));
+				process->pid = pid;
+				process->status = status; 
+				queue_push(childQueue, process);
+				// pid and status are pushed to queue
+				n_child--;
+			}
+			pid = fork();
+			n_child++;
+			if (pid == -1) { // if fork fails
+				fprintf(stderr, "run: execution failed");
+				n_child--;
+				exit(EXIT_FAILURE);
+			}
+			else if (pid == 0){
+				if (changedLine){// if the user passes no arguments with run
+					execl("../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver", "./CircuitRouter-SeqSolver", NULL);
 					exit(EXIT_FAILURE);
 				}
-				else if (pid == 0){
-					if (changedLine){// if the user passes no arguments with run
-						execl(pathbuffer, "./CircuitRouter-SeqSolver", NULL);
-						exit(EXIT_FAILURE);
-					}
-					else {
-						execl(pathbuffer, "./CircuitRouter-SeqSolver",
-						 inputbuffer, NULL) == -1 ? exit(EXIT_FAILURE) :
-						 exit(EXIT_SUCCESS);
-					}
+				else {
+					execl("../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver", "./CircuitRouter-SeqSolver",
+						buffer, NULL) == -1 ? exit(EXIT_FAILURE) :
+						exit(EXIT_SUCCESS);
 				}
-			}
-			else { // if the path doesn't fit the buffer
-				fprintf(stderr, "run: inputfile path too long\n");
 			}
 		}
 		
