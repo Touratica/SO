@@ -73,6 +73,7 @@ enum param_types {
 
 enum param_defaults {
     PARAM_DEFAULT_BENDCOST = 1,
+    PARAM_DEFAULT_THREADNUM = 0,
     PARAM_DEFAULT_XCOST    = 1,
     PARAM_DEFAULT_YCOST    = 1,
     PARAM_DEFAULT_ZCOST    = 2,
@@ -91,6 +92,7 @@ static void displayUsage (const char* appName){
     printf("Usage: %s [options] input_filename\n", appName);
     puts("\nOptions:                            (defaults)\n");
     printf("    b <INT>    [b]end cost          (%i)\n", PARAM_DEFAULT_BENDCOST);
+    printf("    t <INT>    [t]hread number      (%i)\n", PARAM_DEFAULT_THREADNUM);
     printf("    x <UINT>   [x] movement cost    (%i)\n", PARAM_DEFAULT_XCOST);
     printf("    y <UINT>   [y] movement cost    (%i)\n", PARAM_DEFAULT_YCOST);
     printf("    z <UINT>   [z] movement cost    (%i)\n", PARAM_DEFAULT_ZCOST);
@@ -117,14 +119,17 @@ static void setDefaultParams (){
  */
 static void parseArgs (long argc, char* const argv[]){
     long opt;
+    bool_t flagT = FALSE;
 
     opterr = 0;
 
     setDefaultParams();
 
-    while ((opt = getopt(argc, argv, "hb:x:y:z:")) != -1) {
+    while ((opt = getopt(argc, argv, "hb:t:x:y:z:")) != -1) {
         switch (opt) {
             case 'b':
+            case 't':
+                flagT = TRUE;
             case 'x':
             case 'y':
             case 'z':
@@ -136,6 +141,11 @@ static void parseArgs (long argc, char* const argv[]){
             default:
                 break;
         }
+    }
+
+    if (!flagT) {
+        fprintf(stderr, "Missing thread number\n");
+        displayUsage(argv[0]);
     }
 
     if (optind >= argc) {

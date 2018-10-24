@@ -1,0 +1,21 @@
+pthread_t listaDeIDs[t]
+for -> pthread_create(ponteiro para ID, NULL)
+for -> pthread_join(ID da thread, NULL)
+pthread_exit(NULL)
+
+pthread_mutex_t trinco
+pthread_mutex_init(ponteiroTrinco, NULL)
+pthread_mutex_destroy(ponteiroTrinco)
+pthread_mutex_unlock(ponteiroTrinco)
+pthread_mutex_lock(ponteiroTrinco)
+pthread_mutex_trylock(ponteiroTrinco) // a tarefa não fica à espera, retorna EBUSY se estiver trancado
+
+pthread_rwlock_t trincoLE
+pthread_rwlock_rdlock
+pthread_rwlock_tryrdlock // a tarefa não fica à espera, retorna EBUSY se estiver trancado
+pthread_rwlock_wrlock
+pthread_rwlock_trywrlock // a tarefa não fica à espera, retorna EBUSY se estiver trancado
+
+trinco fila de pares coordenadas
+trinco lista de pares encontrados
+trinco algoritmo de cálculo do caminho
