@@ -66,6 +66,7 @@
 
 enum param_types {
     PARAM_BENDCOST = (unsigned char)'b',
+    PARAM_THREADNUM = (unsigned char)'t',
     PARAM_XCOST    = (unsigned char)'x',
     PARAM_YCOST    = (unsigned char)'y',
     PARAM_ZCOST    = (unsigned char)'z',
@@ -107,6 +108,7 @@ static void displayUsage (const char* appName){
  */
 static void setDefaultParams (){
     global_params[PARAM_BENDCOST] = PARAM_DEFAULT_BENDCOST;
+    global_params[PARAM_THREADNUM] = PARAM_DEFAULT_THREADNUM;
     global_params[PARAM_XCOST]    = PARAM_DEFAULT_XCOST;
     global_params[PARAM_YCOST]    = PARAM_DEFAULT_YCOST;
     global_params[PARAM_ZCOST]    = PARAM_DEFAULT_ZCOST;
@@ -119,7 +121,6 @@ static void setDefaultParams (){
  */
 static void parseArgs (long argc, char* const argv[]){
     long opt;
-    bool_t flagT = FALSE;
 
     opterr = 0;
 
@@ -129,7 +130,7 @@ static void parseArgs (long argc, char* const argv[]){
         switch (opt) {
             case 'b':
             case 't':
-                flagT = TRUE;
+                global_params[(unsigned char)opt] = atol(optarg);
             case 'x':
             case 'y':
             case 'z':
@@ -143,7 +144,7 @@ static void parseArgs (long argc, char* const argv[]){
         }
     }
 
-    if (!flagT) {
+        if (!global_params[PARAM_THREADNUM]) {
         fprintf(stderr, "Missing thread number\n");
         displayUsage(argv[0]);
     }
