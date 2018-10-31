@@ -63,6 +63,7 @@
 #include "router.h"
 #include "lib/timer.h"
 #include "lib/types.h"
+#include <pthread.h>
 
 enum param_types {
     PARAM_BENDCOST = (unsigned char)'b',
@@ -205,11 +206,12 @@ int main(int argc, char** argv){
     list_t* pathVectorListPtr = list_alloc(NULL);
     assert(pathVectorListPtr);
 
+
     router_solve_arg_t routerArg = {routerPtr, mazePtr, pathVectorListPtr};
     TIMER_T startTime;
     TIMER_READ(startTime);
 
-    router_solve((void *)&routerArg);
+    router_solve((void *)&routerArg, global_params[PARAM_THREADNUM]);
 
     TIMER_T stopTime;
     TIMER_READ(stopTime);
