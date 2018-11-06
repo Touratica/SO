@@ -293,7 +293,7 @@ static vector_t* doTraceback (grid_t* gridPtr, grid_t* myGridPtr, coordinate_t* 
  * router_solve
  * =============================================================================
  */
-void router_solve (void* argPtr, long threadNumber){
+void router_solve (void* argPtr){
 
     router_solve_arg_t* routerArgPtr = (router_solve_arg_t*)argPtr;
     router_t* routerPtr = routerArgPtr->routerPtr;
@@ -304,8 +304,6 @@ void router_solve (void* argPtr, long threadNumber){
     queue_t* workQueuePtr = mazePtr->workQueuePtr;
     grid_t* gridPtr = mazePtr->gridPtr;
 
-
-    pthread_t idList[threadNumber];
     grid_t* myGridPtr = grid_alloc(gridPtr->width, gridPtr->height, gridPtr->depth);
     assert(myGridPtr);
     long bendCost = routerPtr->bendCost;

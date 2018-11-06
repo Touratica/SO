@@ -91,7 +91,7 @@ void router_free (router_t* routerPtr);
  * router_solve
  * =============================================================================
  */
-void router_solve (void* argPtr, long threadNumber);
+void router_solve (void* argPtr);
 
 
 #endif /* ROUTER_H */

@@ -145,7 +145,7 @@ static void parseArgs (long argc, char* const argv[]){
         }
     }
 
-        if (!global_params[PARAM_THREADNUM]) {
+        if (global_params[PARAM_THREADNUM] <= 0) {
         fprintf(stderr, "Missing thread number\n");
         displayUsage(argv[0]);
     }
@@ -211,7 +211,22 @@ int main(int argc, char** argv){
     TIMER_T startTime;
     TIMER_READ(startTime);
 
-    router_solve((void *)&routerArg, global_params[PARAM_THREADNUM]);
+    // Creates as many threads as specified by user
+    pthread_t tid[global_params[PARAM_THREADNUM]];
+    for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
+        // If not successful, gives error message and exits program
+        if (pthread_create(&tid[i], NULL, (void **)router_solve, (void *)&routerArg)) {
+            fprintf(stderr, "Unable to create thread.\n");
+            exit(1);
+        } 
+    }
+
+    for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
+        if (pthread_join(tid[i], NULL)) {
+            fprintf(stderr, "Unable to join thread.\n");
+            exit(1);
+        }
+    }
 
     TIMER_T stopTime;
     TIMER_READ(stopTime);
