@@ -266,6 +266,7 @@ int main(int argc, char** argv){
     list_free(pathVectorListPtr);
 
     fclose(resultFp);
+    pthread_exit(NULL);
     exit(0);
 }
 
