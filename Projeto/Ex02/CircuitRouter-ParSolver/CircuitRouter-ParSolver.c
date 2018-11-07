@@ -213,9 +213,17 @@ int main(int argc, char** argv){
 
     // Creates as many threads as specified by user
     pthread_t tid[global_params[PARAM_THREADNUM]];
+    locks_t * fine_locks;
+    
+    // fazer malloc 
+    pthread_mutex_init(&(fine_locks->grid_lock),NULL);
+    pthread_mutex_init(&(fine_locks->queue_lock),NULL);
+    pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
+
+
     for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
         // If not successful, gives error message and exits program
-        if (pthread_create(&tid[i], NULL, (void **)router_solve, (void *)&routerArg)) {
+        if (pthread_create(&tid[i], NULL, (void *)router_solve, (void *)&routerArg)) {
             fprintf(stderr, "Unable to create thread.\n");
             exit(1);
         } 
