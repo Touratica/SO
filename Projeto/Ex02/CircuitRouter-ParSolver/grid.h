@@ -57,6 +57,7 @@
 #include <stdio.h>
 #include "lib/types.h"
 #include "lib/vector.h"
+#include <pthread.h>
 
 
 typedef struct grid {
@@ -66,6 +67,13 @@ typedef struct grid {
     long* points;
     long* points_unaligned;
 } grid_t;
+
+typedef struct{
+    pthread_mutex_t grid_lock;
+    pthread_mutex_t queue_lock;
+    pthread_mutex_t pathVector_lock;
+
+}locks_t;
 
 enum {
     GRID_POINT_FULL  = -2L,
