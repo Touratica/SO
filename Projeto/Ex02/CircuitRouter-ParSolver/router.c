@@ -331,7 +331,8 @@ void router_solve (void* argPtr){
 			}
 
 			coordinatePairPtr = (pair_t*)queue_pop(workQueuePtr);
-			assert((pthread_mutex_unlock(&(routerArgPtr->fine_locks->queue_lock))) == 0);
+			p = pthread_mutex_unlock(&(routerArgPtr->fine_locks->queue_lock));
+			assert(p == 0);
 
 		}
 		if (coordinatePairPtr == NULL) {
@@ -382,7 +383,8 @@ void router_solve (void* argPtr){
 	}
 
 	list_insert(pathVectorListPtr, (void*)myPathVectorPtr);
-	assert((pthread_mutex_unlock(&(routerArgPtr->fine_locks->pathVector_lock))) == 0);
+	p = pthread_mutex_unlock(&(routerArgPtr->fine_locks->pathVector_lock));
+	assert(p == 0);
 
 	grid_free(myGridPtr);
 	queue_free(myExpansionQueuePtr);
@@ -405,7 +407,8 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 			//if this position is locked, free all the resources acquired
 			for (long j = 0; j <= i; j++){
 				grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
-				assert(pthread_mutex_unlock(&grid_lock[x][y][z]) == 0);
+				p = pthread_mutex_unlock(&grid_lock[x][y][z]);
+				assert(p == 0);
 			}
 			return FALSE;
 		}
