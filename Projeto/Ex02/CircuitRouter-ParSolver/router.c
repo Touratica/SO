@@ -324,7 +324,7 @@ void router_solve (void* argPtr){
         } else {
             //when trylock succeeds returns 0
             while (!pthread_mutex_trylock(&(routerArgPtr->fine_locks->queue_lock))){
-                tim.tv_nsec=rand()%800;
+                tim.tv_nsec=random()%800;
                 nanosleep(&tim,NULL);
             }
 
@@ -343,12 +343,13 @@ void router_solve (void* argPtr){
 
         bool_t success = FALSE;
         vector_t* pointVectorPtr = NULL;
-
+    //fazer ciclo
         grid_copy(myGridPtr, gridPtr); /* create a copy of the grid, over which the expansion and trace back phases will be executed. */
         if (doExpansion(routerPtr, myGridPtr, myExpansionQueuePtr,
                          srcPtr, dstPtr)) {
             pointVectorPtr = doTraceback(gridPtr, myGridPtr, dstPtr, bendCost);
             if (pointVectorPtr) {
+                //adds to global
                 grid_addPath_Ptr(gridPtr, pointVectorPtr);
 
                 success = TRUE;
