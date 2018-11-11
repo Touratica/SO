@@ -68,6 +68,11 @@ typedef struct grid {
     long* points_unaligned;
 } grid_t;
 
+typedef struct{
+    pthread_mutex_t ***grid_lock;
+    pthread_mutex_t queue_lock;
+    pthread_mutex_t pathVector_lock;
+}locks_t;
 
 enum {
     GRID_POINT_FULL  = -2L,

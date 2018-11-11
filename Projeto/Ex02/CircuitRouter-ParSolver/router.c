@@ -308,18 +308,29 @@ void router_solve (void* argPtr){
     assert(myGridPtr);
     long bendCost = routerPtr->bendCost;
     queue_t* myExpansionQueuePtr = queue_alloc(-1);
+    struct timespec tim;
+    tim.tv_sec=0;
 
     /*
      * Iterate over work list to route each path. This involves an
      * 'expansion' and 'traceback' phase for each source/destination pair.
      */
+
     while (1) {
 
         pair_t* coordinatePairPtr;
         if (queue_isEmpty(workQueuePtr)) {
             coordinatePairPtr = NULL;
         } else {
+            //when trylock succeeds returns 0
+            while (!pthread_mutex_trylock(&(routerArgPtr->fine_locks->queue_lock))){
+                tim.tv_nsec=rand()%800;
+                nanosleep(&tim,NULL);
+            }
+
             coordinatePairPtr = (pair_t*)queue_pop(workQueuePtr);
+            pthread_mutex_unlock(&(routerArgPtr->fine_locks->queue_lock));
+
         }
         if (coordinatePairPtr == NULL) {
             break;

@@ -81,13 +81,6 @@ enum param_defaults {
     PARAM_DEFAULT_ZCOST    = 2,
 };
 
-typedef struct{
-    pthread_mutex_t ***grid_lock;
-    pthread_mutex_t queue_lock;
-    pthread_mutex_t pathVector_lock;
-}locks_t;
-
-
 bool_t global_doPrint = TRUE;
 char* global_inputFile = NULL;
 long global_params[256]; /* 256 = ascii limit */
@@ -200,6 +193,7 @@ int main(int argc, char** argv){
     /*
      * Initialization
      */
+        fprintf(stdout,"here");
     parseArgs(argc, argv);
     FILE* resultFp = outputFile();
     maze_t* mazePtr = maze_alloc();
@@ -214,9 +208,6 @@ int main(int argc, char** argv){
     assert(pathVectorListPtr);
 
 
-    router_solve_arg_t routerArg = {routerPtr, mazePtr, pathVectorListPtr};
-    TIMER_T startTime;
-    TIMER_READ(startTime);
 
     // Creates as many threads as specified by user
     pthread_t tid[global_params[PARAM_THREADNUM]];
@@ -239,18 +230,22 @@ int main(int argc, char** argv){
 
    // pthread_mutex_t grid[mazePtr->gridPtr->width][mazePtr->gridPtr->height][mazePtr->gridPtr->depth];
 
-    // initializes grid mutexes
-    for (long x = 0; x < mazePtr->gridPtr->width; x++) 
-        for (long y = 0; y < mazePtr->gridPtr->height; y++) 
-            for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
-                pthread_mutex_init(&(fine_locks->grid_lock[x][y][z]),NULL);
+        // initializes grid mutexes
+        for (long x = 0; x < mazePtr->gridPtr->width; x++) 
+            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+                for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
+                    pthread_mutex_init(&(fine_locks->grid_lock[x][y][z]),NULL);
 
-    //initializes queue of pair coordinates mutex
-    pthread_mutex_init(&(fine_locks->queue_lock),NULL);
+        //initializes queue of pair coordinates mutex
+        pthread_mutex_init(&(fine_locks->queue_lock),NULL);
 
-    //initializes vector path mutex
-    pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
+        //initializes vector path mutex
+        pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
     }
+
+    router_solve_arg_t routerArg = {routerPtr, mazePtr, pathVectorListPtr, fine_locks};
+    TIMER_T startTime;
+    TIMER_READ(startTime);
 
     for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
         // If not successful, gives error message and exits program
@@ -319,7 +314,7 @@ int main(int argc, char** argv){
     list_free(pathVectorListPtr);
 
     fclose(resultFp);
-    pthread_exit(NULL);
+   // pthread_exit(NULL);
     exit(0);
 }
 
