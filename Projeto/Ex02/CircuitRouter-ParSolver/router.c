@@ -343,16 +343,29 @@ void router_solve (void* argPtr){
 
         bool_t success = FALSE;
         vector_t* pointVectorPtr = NULL;
-    //fazer ciclo
-        grid_copy(myGridPtr, gridPtr); /* create a copy of the grid, over which the expansion and trace back phases will be executed. */
-        if (doExpansion(routerPtr, myGridPtr, myExpansionQueuePtr,
-                         srcPtr, dstPtr)) {
-            pointVectorPtr = doTraceback(gridPtr, myGridPtr, dstPtr, bendCost);
-            if (pointVectorPtr) {
-                //adds to global
-                grid_addPath_Ptr(gridPtr, pointVectorPtr);
-
-                success = TRUE;
+        // TODO:fazer ciclo
+        while (1) {
+            grid_copy(myGridPtr, gridPtr); /* create a copy of the grid, over which the expansion and trace back phases will be executed. */
+            if (doExpansion(routerPtr, myGridPtr, myExpansionQueuePtr,
+                            srcPtr, dstPtr)) {
+                pointVectorPtr = doTraceback(gridPtr, myGridPtr, dstPtr, bendCost);
+                if (pointVectorPtr) {
+                    if (cellsUnlocked(gridPtr, pointVectorPtr, &(routerArgPtr->fine_locks->grid_lock))) {
+                        //adds to global
+                        grid_addPath_Ptr(gridPtr, pointVectorPtr);
+                        success = TRUE;
+                        break;
+                    }
+                    else {
+                        vector_free(pointVectorPtr);
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                break;
             }
         }
 
@@ -373,8 +386,11 @@ void router_solve (void* argPtr){
     queue_free(myExpansionQueuePtr);
 }
 
+bool_t cellsUnlocked(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock) {
 
-/* =============================================================================
+    }
+
+    /* =============================================================================
  *
  * End of router.c
  *
