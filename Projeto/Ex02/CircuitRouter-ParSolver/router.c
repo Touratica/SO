@@ -59,6 +59,7 @@
 #include "router.h"
 #include "lib/vector.h"
 #include <pthread.h>
+#include <errno.h>
 
 
 typedef enum momentum {
@@ -315,7 +316,7 @@ void router_solve (void* argPtr){
      * Iterate over work list to route each path. This involves an
      * 'expansion' and 'traceback' phase for each source/destination pair.
      */
-
+    int p;
     while (1) {
 
         pair_t* coordinatePairPtr;
@@ -323,7 +324,8 @@ void router_solve (void* argPtr){
             coordinatePairPtr = NULL;
         } else {
             //when trylock succeeds returns 0
-            while (!pthread_mutex_trylock(&(routerArgPtr->fine_locks->queue_lock))){
+            while (!(p=pthread_mutex_trylock(&(routerArgPtr->fine_locks->queue_lock)))){
+                assert(p==EBUSY); //if error on trylock aborts program 
                 tim.tv_nsec=random()%800;
                 nanosleep(&tim,NULL);
             }
@@ -343,30 +345,25 @@ void router_solve (void* argPtr){
 
         bool_t success = FALSE;
         vector_t* pointVectorPtr = NULL;
-        // TODO:fazer ciclo
+
         while (1) {
             grid_copy(myGridPtr, gridPtr); /* create a copy of the grid, over which the expansion and trace back phases will be executed. */
             if (doExpansion(routerPtr, myGridPtr, myExpansionQueuePtr,
                             srcPtr, dstPtr)) {
                 pointVectorPtr = doTraceback(gridPtr, myGridPtr, dstPtr, bendCost);
                 if (pointVectorPtr) {
-                    if (cellsUnlocked(gridPtr, pointVectorPtr, &(routerArgPtr->fine_locks->grid_lock))) {
+
+                    if (lock_cells(gridPtr, pointVectorPtr, (routerArgPtr->fine_locks->grid_lock))) {
                         //adds to global
                         grid_addPath_Ptr(gridPtr, pointVectorPtr);
                         success = TRUE;
                         break;
                     }
-                    else {
-                        vector_free(pointVectorPtr);
-                    }
+                    else vector_free(pointVectorPtr);
                 }
-                else {
-                    break;
-                }
+                else break;
             }
-            else {
-                break;
-            }
+            else break;
         }
 
         if (success) {
@@ -380,17 +377,47 @@ void router_solve (void* argPtr){
      * Add my paths to global list
      */
     list_t* pathVectorListPtr = routerArgPtr->pathVectorListPtr;
+    while (!(p=pthread_mutex_trylock(&(routerArgPtr->fine_locks->pathVector_lock)))){
+                assert(p==EBUSY); //if error on trylock aborts program 
+                tim.tv_nsec=random()%800;
+                nanosleep(&tim,NULL);
+            }
+
     list_insert(pathVectorListPtr, (void*)myPathVectorPtr);
+    pthread_mutex_unlock(&(routerArgPtr->fine_locks->pathVector_lock));
 
     grid_free(myGridPtr);
     queue_free(myExpansionQueuePtr);
 }
 
-bool_t cellsUnlocked(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock) {
 
+/* =============================================================================
+ * lock_cells
+ * =============================================================================
+ */
+
+bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock) {
+    long x,y,z;
+    int p;
+    //goes cell by cell to lock each position
+    for(long i=0; i< vector_getSize(pointVectorPtr); i++){
+        grid_getPointIndices(gridPtr,vector_at(pointVectorPtr,i),&x,&y,&z);
+
+        if ((p=pthread_mutex_trylock(&grid_lock[x][y][z]))==EBUSY){
+            //if this position is locked, free all the resources acquired
+            for(long j=0; j<i; j++){
+                grid_getPointIndices(gridPtr,vector_at(pointVectorPtr,i),&x,&y,&z);
+                pthread_mutex_unlock(&grid_lock[x][y][z]);
+            }
+            return FALSE;
+        }
+        assert(p==0); //checks if there occured another error in trylock
     }
 
-    /* =============================================================================
+    return TRUE;
+}
+
+/* =============================================================================
  *
  * End of router.c
  *
