@@ -224,21 +224,21 @@ int main(int argc, char** argv){
 
     //allocs memory to a fine_locks->grid_lock[x][y][z]
     if (fine_locks){
+
         fine_locks->grid_lock=(pthread_mutex_t ***)malloc(mazePtr->gridPtr->width * sizeof(pthread_mutex_t**));
         
         for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
             fine_locks->grid_lock[x]=(pthread_mutex_t **)malloc(mazePtr->gridPtr->height * sizeof(pthread_mutex_t*));
+
             for (long y = 0; y < mazePtr->gridPtr->height; y++) 
                 fine_locks->grid_lock[x][y]=(pthread_mutex_t *)malloc(mazePtr->gridPtr->depth * sizeof(pthread_mutex_t));
         }
 
-    }
+    
     // fine_locks->grid_lock =(pthread_mutex_t *)malloc((mazePtr->gridPtr->width + mazePtr->gridPtr->height + mazePtr->gridPtr->depth) * sizeof(pthread_mutex_t));
 
    // pthread_mutex_t grid[mazePtr->gridPtr->width][mazePtr->gridPtr->height][mazePtr->gridPtr->depth];
 
-
-    
     // initializes grid mutexes
     for (long x = 0; x < mazePtr->gridPtr->width; x++) 
         for (long y = 0; y < mazePtr->gridPtr->height; y++) 
@@ -250,7 +250,7 @@ int main(int argc, char** argv){
 
     //initializes vector path mutex
     pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
-
+    }
 
     for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
         // If not successful, gives error message and exits program
@@ -280,18 +280,20 @@ int main(int argc, char** argv){
     fprintf(resultFp, "Paths routed    = %li\n", numPathRouted);
     fprintf(resultFp, "Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));
 
-    // frees grid mutexes
-    for (long x = 0; x < mazePtr->gridPtr->width; x++) 
-        for (long y = 0; y < mazePtr->gridPtr->height; y++) 
-            for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
-                pthread_mutex_destroy(&(fine_locks->grid_lock[x][y][z]));
 
-    //frees queue of pair coordinates mutex
-    pthread_mutex_destroy(&(fine_locks->queue_lock));
+    if (fine_locks){ 
+        // frees grid mutexes
+        for (long x = 0; x < mazePtr->gridPtr->width; x++) 
+            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+                for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
+                    pthread_mutex_destroy(&(fine_locks->grid_lock[x][y][z]));
 
-    //frees vector path mutex
-    pthread_mutex_destroy(&(fine_locks->pathVector_lock));
+        //frees queue of pair coordinates mutex
+        pthread_mutex_destroy(&(fine_locks->queue_lock));
 
+        //frees vector path mutex
+        pthread_mutex_destroy(&(fine_locks->pathVector_lock));
+    }
 
     /*
      * Check solution and clean up
