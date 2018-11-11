@@ -81,6 +81,13 @@ enum param_defaults {
     PARAM_DEFAULT_ZCOST    = 2,
 };
 
+typedef struct{
+    pthread_mutex_t ***grid_lock;
+    pthread_mutex_t queue_lock;
+    pthread_mutex_t pathVector_lock;
+}locks_t;
+
+
 bool_t global_doPrint = TRUE;
 char* global_inputFile = NULL;
 long global_params[256]; /* 256 = ascii limit */
@@ -213,20 +220,35 @@ int main(int argc, char** argv){
 
     // Creates as many threads as specified by user
     pthread_t tid[global_params[PARAM_THREADNUM]];
-    locks_t * fine_locks;
-    fine_locks = (locks_t*)malloc(sizeof(locks_t));
+    locks_t * fine_locks=(locks_t*)malloc(sizeof(locks_t));
+
+    //allocs memory to a fine_locks->grid_lock[x][y][z]
+    if (fine_locks){
+        fine_locks->grid_lock=(pthread_mutex_t ***)malloc(mazePtr->gridPtr->width * sizeof(pthread_mutex_t**));
+        
+        for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
+            fine_locks->grid_lock[x]=(pthread_mutex_t **)malloc(mazePtr->gridPtr->height * sizeof(pthread_mutex_t*));
+            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+                fine_locks->grid_lock[x][y]=(pthread_mutex_t *)malloc(mazePtr->gridPtr->depth * sizeof(pthread_mutex_t));
+        }
+
+    }
     // fine_locks->grid_lock =(pthread_mutex_t *)malloc((mazePtr->gridPtr->width + mazePtr->gridPtr->height + mazePtr->gridPtr->depth) * sizeof(pthread_mutex_t));
-    pthread_mutex_t grid[mazePtr->gridPtr->width][mazePtr->gridPtr->height][mazePtr->gridPtr->depth];
-    fine_locks->grid_lock = &grid;
+
+   // pthread_mutex_t grid[mazePtr->gridPtr->width][mazePtr->gridPtr->height][mazePtr->gridPtr->depth];
+
 
     
-    // fazer malloc 
-    for (long x = 0; x < mazePtr->gridPtr->width; x++) {
-        for (long y = 0; x < mazePtr->gridPtr->height; y++) {
-            for (long z = 0; x < mazePtr->gridPtr->depth; z++) {
+    // initializes grid mutexes
+    for (long x = 0; x < mazePtr->gridPtr->width; x++) 
+        for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+            for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
                 pthread_mutex_init(&(fine_locks->grid_lock[x][y][z]),NULL);
-    }
+
+    //initializes queue of pair coordinates mutex
     pthread_mutex_init(&(fine_locks->queue_lock),NULL);
+
+    //initializes vector path mutex
     pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
 
 
