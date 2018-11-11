@@ -352,7 +352,6 @@ void router_solve (void* argPtr){
 							srcPtr, dstPtr)) {
 				pointVectorPtr = doTraceback(gridPtr, myGridPtr, dstPtr, bendCost);
 				if (pointVectorPtr) {
-
 					if (lock_cells(gridPtr, pointVectorPtr, (routerArgPtr->fine_locks->grid_lock))) {
 						//adds to global
 						grid_addPath_Ptr(gridPtr, pointVectorPtr);
@@ -398,14 +397,14 @@ void router_solve (void* argPtr){
 bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock) {
 	long x,y,z;
 	int p;
-	//goes cell by cell to lock each position
-	for(long i=0; i< vector_getSize(pointVectorPtr); i++){
-		grid_getPointIndices(gridPtr,vector_at(pointVectorPtr,i),&x,&y,&z);
+	//goes cell by cell to lock each position	
+	for(long i = 0; i < vector_getSize(pointVectorPtr); i++){
+		grid_getPointIndices(gridPtr,vector_at(pointVectorPtr, i), &x, &y, &z);
 
 		if ((p=pthread_mutex_trylock(&grid_lock[x][y][z]))==EBUSY){
 			//if this position is locked, free all the resources acquired
-			for(long j=0; j<i; j++){
-				grid_getPointIndices(gridPtr,vector_at(pointVectorPtr,i),&x,&y,&z);
+			for(long j = 0; j < i; j++){
+				grid_getPointIndices(gridPtr,vector_at(pointVectorPtr, j), &x, &y, &z);
 				pthread_mutex_unlock(&grid_lock[x][y][z]);
 			}
 			return FALSE;
