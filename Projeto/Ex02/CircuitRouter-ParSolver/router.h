@@ -94,9 +94,19 @@ void router_free (router_t* routerPtr);
  */
 void router_solve (void* argPtr);
 
+
+/* =============================================================================
+ * lock_cells
+ * =============================================================================
+ */
 bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock);
 
 
+/* =============================================================================
+ * unlock_cells
+ * =============================================================================
+ */
+void unlock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock);
 
 #endif /* ROUTER_H */
 
