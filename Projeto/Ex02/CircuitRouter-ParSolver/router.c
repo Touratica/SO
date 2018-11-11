@@ -400,16 +400,20 @@ void router_solve (void* argPtr){
 bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock) {
 	long x,y,z;
 	int p;
+	struct timespec tim;
+	tim.tv_sec=0;
 	//goes cell by cell to lock each position of the calculated path
 	for(long i = 0; i < vector_getSize(pointVectorPtr); i++){
 		grid_getPointIndices(gridPtr,vector_at(pointVectorPtr, i), &x, &y, &z);
 
 		if ((p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
 			//if this position is locked, free all the resources acquired
-			for (long j = 0; j <= i; j++){
+			for (long j = 0; j < i; j++){
 				grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
 				p = pthread_mutex_unlock(&grid_lock[x][y][z]);
 				assert(p == 0);
+				tim.tv_nsec=random()%800;
+				nanosleep(&tim,NULL);
 			}
 			return FALSE;
 		}
