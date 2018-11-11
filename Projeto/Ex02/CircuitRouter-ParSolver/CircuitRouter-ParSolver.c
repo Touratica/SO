@@ -288,6 +288,16 @@ int main(int argc, char** argv){
 
         //frees vector path mutex
         pthread_mutex_destroy(&(fine_locks->pathVector_lock));
+        
+        //frees everything in mutexes' structure
+        for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
+            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+                free(fine_locks->grid_lock[x][y]);
+
+            free(fine_locks->grid_lock[x]);
+        }
+        free(fine_locks->grid_lock);
+        free(fine_locks);
     }
 
     /*
