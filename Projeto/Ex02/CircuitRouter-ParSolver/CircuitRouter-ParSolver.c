@@ -224,11 +224,6 @@ int main(int argc, char** argv){
 				fine_locks->grid_lock[x][y]=(pthread_mutex_t *)malloc(mazePtr->gridPtr->depth * sizeof(pthread_mutex_t));
 		}
 
-	
-	// fine_locks->grid_lock =(pthread_mutex_t *)malloc((mazePtr->gridPtr->width + mazePtr->gridPtr->height + mazePtr->gridPtr->depth) * sizeof(pthread_mutex_t));
-
-   // pthread_mutex_t grid[mazePtr->gridPtr->width][mazePtr->gridPtr->height][mazePtr->gridPtr->depth];
-
 		// initializes grid mutexes
 		for (long x = 0; x < mazePtr->gridPtr->width; x++) 
 			for (long y = 0; y < mazePtr->gridPtr->height; y++) 

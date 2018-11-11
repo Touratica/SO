@@ -348,7 +348,8 @@ void router_solve (void* argPtr){
 		vector_t* pointVectorPtr = NULL;
 
 		while (1) {
-			grid_copy(myGridPtr, gridPtr); /* create a copy of the grid, over which the expansion and trace back phases will be executed. */
+			// create a copy of the grid, on which the expansion and traceback phases will be executed. */
+			grid_copy(myGridPtr, gridPtr); 
 			if (doExpansion(routerPtr, myGridPtr, myExpansionQueuePtr,
 							srcPtr, dstPtr)) {
 				pointVectorPtr = doTraceback(gridPtr, myGridPtr, dstPtr, bendCost);
@@ -399,7 +400,7 @@ void router_solve (void* argPtr){
 bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***grid_lock) {
 	long x,y,z;
 	int p;
-	//goes cell by cell to lock each position	
+	//goes cell by cell to lock each position of the calculated path
 	for(long i = 0; i < vector_getSize(pointVectorPtr); i++){
 		grid_getPointIndices(gridPtr,vector_at(pointVectorPtr, i), &x, &y, &z);
 
