@@ -66,19 +66,19 @@
 #include <pthread.h>
 
 enum param_types {
-    PARAM_BENDCOST = (unsigned char)'b',
-    PARAM_THREADNUM = (unsigned char)'t',
-    PARAM_XCOST    = (unsigned char)'x',
-    PARAM_YCOST    = (unsigned char)'y',
-    PARAM_ZCOST    = (unsigned char)'z',
+	PARAM_BENDCOST = (unsigned char)'b',
+	PARAM_THREADNUM = (unsigned char)'t',
+	PARAM_XCOST    = (unsigned char)'x',
+	PARAM_YCOST    = (unsigned char)'y',
+	PARAM_ZCOST    = (unsigned char)'z',
 };
 
 enum param_defaults {
-    PARAM_DEFAULT_BENDCOST = 1,
-    PARAM_DEFAULT_THREADNUM = 0,
-    PARAM_DEFAULT_XCOST    = 1,
-    PARAM_DEFAULT_YCOST    = 1,
-    PARAM_DEFAULT_ZCOST    = 2,
+	PARAM_DEFAULT_BENDCOST = 1,
+	PARAM_DEFAULT_THREADNUM = 0,
+	PARAM_DEFAULT_XCOST    = 1,
+	PARAM_DEFAULT_YCOST    = 1,
+	PARAM_DEFAULT_ZCOST    = 2,
 };
 
 bool_t global_doPrint = TRUE;
@@ -91,15 +91,15 @@ long global_params[256]; /* 256 = ascii limit */
  * =============================================================================
  */
 static void displayUsage (const char* appName){
-    printf("Usage: %s [options] input_filename\n", appName);
-    puts("\nOptions:                            (defaults)\n");
-    printf("    b <INT>    [b]end cost          (%i)\n", PARAM_DEFAULT_BENDCOST);
-    printf("    t <INT>    [t]hread number      (%i)\n", PARAM_DEFAULT_THREADNUM);
-    printf("    x <UINT>   [x] movement cost    (%i)\n", PARAM_DEFAULT_XCOST);
-    printf("    y <UINT>   [y] movement cost    (%i)\n", PARAM_DEFAULT_YCOST);
-    printf("    z <UINT>   [z] movement cost    (%i)\n", PARAM_DEFAULT_ZCOST);
-    printf("    h          [h]elp message       (false)\n");
-    exit(1);
+	printf("Usage: %s [options] input_filename\n", appName);
+	puts("\nOptions:                            (defaults)\n");
+	printf("    b <INT>    [b]end cost          (%i)\n", PARAM_DEFAULT_BENDCOST);
+	printf("    t <INT>    [t]hread number      (%i)\n", PARAM_DEFAULT_THREADNUM);
+	printf("    x <UINT>   [x] movement cost    (%i)\n", PARAM_DEFAULT_XCOST);
+	printf("    y <UINT>   [y] movement cost    (%i)\n", PARAM_DEFAULT_YCOST);
+	printf("    z <UINT>   [z] movement cost    (%i)\n", PARAM_DEFAULT_ZCOST);
+	printf("    h          [h]elp message       (false)\n");
+	exit(1);
 }
 
 
@@ -108,11 +108,11 @@ static void displayUsage (const char* appName){
  * =============================================================================
  */
 static void setDefaultParams (){
-    global_params[PARAM_BENDCOST] = PARAM_DEFAULT_BENDCOST;
-    global_params[PARAM_THREADNUM] = PARAM_DEFAULT_THREADNUM;
-    global_params[PARAM_XCOST]    = PARAM_DEFAULT_XCOST;
-    global_params[PARAM_YCOST]    = PARAM_DEFAULT_YCOST;
-    global_params[PARAM_ZCOST]    = PARAM_DEFAULT_ZCOST;
+	global_params[PARAM_BENDCOST] = PARAM_DEFAULT_BENDCOST;
+	global_params[PARAM_THREADNUM] = PARAM_DEFAULT_THREADNUM;
+	global_params[PARAM_XCOST]    = PARAM_DEFAULT_XCOST;
+	global_params[PARAM_YCOST]    = PARAM_DEFAULT_YCOST;
+	global_params[PARAM_ZCOST]    = PARAM_DEFAULT_ZCOST;
 }
 
 
@@ -121,41 +121,41 @@ static void setDefaultParams (){
  * =============================================================================
  */
 static void parseArgs (long argc, char* const argv[]){
-    long opt;
+	long opt;
 
-    opterr = 0;
+	opterr = 0;
 
-    setDefaultParams();
+	setDefaultParams();
 
-    while ((opt = getopt(argc, argv, "hb:t:x:y:z:")) != -1) {
-        switch (opt) {
-            case 'b':
-            case 't':
-                global_params[(unsigned char)opt] = atol(optarg);
-            case 'x':
-            case 'y':
-            case 'z':
-                global_params[(unsigned char)opt] = atol(optarg);
-                break;
-            case '?':
-            case 'h':
-                displayUsage(argv[0]);
-            default:
-                break;
-        }
-    }
+	while ((opt = getopt(argc, argv, "hb:t:x:y:z:")) != -1) {
+		switch (opt) {
+			case 'b':
+			case 't':
+				global_params[(unsigned char)opt] = atol(optarg);
+			case 'x':
+			case 'y':
+			case 'z':
+				global_params[(unsigned char)opt] = atol(optarg);
+				break;
+			case '?':
+			case 'h':
+				displayUsage(argv[0]);
+			default:
+				break;
+		}
+	}
 
-        if (global_params[PARAM_THREADNUM] <= 0) {
-        fprintf(stderr, "Missing thread number\n");
-        displayUsage(argv[0]);
-    }
+		if (global_params[PARAM_THREADNUM] <= 0) {
+		fprintf(stderr, "Missing thread number\n");
+		displayUsage(argv[0]);
+	}
 
-    if (optind >= argc) {
-        fprintf(stderr, "Missing input file\n");
-        displayUsage(argv[0]);
-    }
+	if (optind >= argc) {
+		fprintf(stderr, "Missing input file\n");
+		displayUsage(argv[0]);
+	}
 
-    global_inputFile = argv[optind];
+	global_inputFile = argv[optind];
 }
 
 /* =============================================================================
@@ -163,25 +163,25 @@ static void parseArgs (long argc, char* const argv[]){
  * =============================================================================
  */
 FILE * outputFile() {
-    FILE *fp;
+	FILE *fp;
 
-    char result_outputFile[strlen(global_inputFile) + strlen(".res") + 1];
-    sprintf(result_outputFile, "%s.res", global_inputFile);
+	char result_outputFile[strlen(global_inputFile) + strlen(".res") + 1];
+	sprintf(result_outputFile, "%s.res", global_inputFile);
 
-    if (access(result_outputFile, F_OK) == 0) {
-        char old_outputFile[strlen(global_inputFile) + strlen(".res.old") + 1];
-        sprintf(old_outputFile, "%s.res.old", global_inputFile);
-        if (rename(result_outputFile, old_outputFile) == -1) {
-            perror("Error renaming output file");
-            exit(EXIT_FAILURE);;
-        }
-    }
-    fp = fopen(result_outputFile, "wt");
-    if (fp == NULL) {
-        perror("Error opening output file");
-        exit(EXIT_FAILURE);
-    }
-    return fp;
+	if (access(result_outputFile, F_OK) == 0) {
+		char old_outputFile[strlen(global_inputFile) + strlen(".res.old") + 1];
+		sprintf(old_outputFile, "%s.res.old", global_inputFile);
+		if (rename(result_outputFile, old_outputFile) == -1) {
+			perror("Error renaming output file");
+			exit(EXIT_FAILURE);;
+		}
+	}
+	fp = fopen(result_outputFile, "wt");
+	if (fp == NULL) {
+		perror("Error opening output file");
+		exit(EXIT_FAILURE);
+	}
+	return fp;
 }
 
 
@@ -190,142 +190,141 @@ FILE * outputFile() {
  * =============================================================================
  */
 int main(int argc, char** argv){
-    /*
-     * Initialization
-     */
-        fprintf(stdout,"here");
-    parseArgs(argc, argv);
-    FILE* resultFp = outputFile();
-    maze_t* mazePtr = maze_alloc();
-    assert(mazePtr);
-    long numPathToRoute = maze_read(mazePtr, global_inputFile, resultFp);
-    router_t* routerPtr = router_alloc(global_params[PARAM_XCOST],
-                                       global_params[PARAM_YCOST],
-                                       global_params[PARAM_ZCOST],
-                                       global_params[PARAM_BENDCOST]);
-    assert(routerPtr);
-    list_t* pathVectorListPtr = list_alloc(NULL);
-    assert(pathVectorListPtr);
+	/*
+	 * Initialization
+	 */
+	parseArgs(argc, argv);
+	FILE* resultFp = outputFile();
+	maze_t* mazePtr = maze_alloc();
+	assert(mazePtr);
+	long numPathToRoute = maze_read(mazePtr, global_inputFile, resultFp);
+	router_t* routerPtr = router_alloc(global_params[PARAM_XCOST],
+									   global_params[PARAM_YCOST],
+									   global_params[PARAM_ZCOST],
+									   global_params[PARAM_BENDCOST]);
+	assert(routerPtr);
+	list_t* pathVectorListPtr = list_alloc(NULL);
+	assert(pathVectorListPtr);
 
 
 
-    // Creates as many threads as specified by user
-    pthread_t tid[global_params[PARAM_THREADNUM]];
-    locks_t * fine_locks=(locks_t*)malloc(sizeof(locks_t));
+	// Creates as many threads as specified by user
+	pthread_t tid[global_params[PARAM_THREADNUM]];
+	locks_t * fine_locks=(locks_t*)malloc(sizeof(locks_t));
 
-    //allocs memory to a fine_locks->grid_lock[x][y][z]
-    if (fine_locks){
+	//allocs memory to a fine_locks->grid_lock[x][y][z]
+	if (fine_locks){
 
-        fine_locks->grid_lock=(pthread_mutex_t ***)malloc(mazePtr->gridPtr->width * sizeof(pthread_mutex_t**));
-        
-        for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
-            fine_locks->grid_lock[x]=(pthread_mutex_t **)malloc(mazePtr->gridPtr->height * sizeof(pthread_mutex_t*));
+		fine_locks->grid_lock=(pthread_mutex_t ***)malloc(mazePtr->gridPtr->width * sizeof(pthread_mutex_t**));
+		
+		for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
+			fine_locks->grid_lock[x]=(pthread_mutex_t **)malloc(mazePtr->gridPtr->height * sizeof(pthread_mutex_t*));
 
-            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
-                fine_locks->grid_lock[x][y]=(pthread_mutex_t *)malloc(mazePtr->gridPtr->depth * sizeof(pthread_mutex_t));
-        }
+			for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+				fine_locks->grid_lock[x][y]=(pthread_mutex_t *)malloc(mazePtr->gridPtr->depth * sizeof(pthread_mutex_t));
+		}
 
-    
-    // fine_locks->grid_lock =(pthread_mutex_t *)malloc((mazePtr->gridPtr->width + mazePtr->gridPtr->height + mazePtr->gridPtr->depth) * sizeof(pthread_mutex_t));
+	
+	// fine_locks->grid_lock =(pthread_mutex_t *)malloc((mazePtr->gridPtr->width + mazePtr->gridPtr->height + mazePtr->gridPtr->depth) * sizeof(pthread_mutex_t));
 
    // pthread_mutex_t grid[mazePtr->gridPtr->width][mazePtr->gridPtr->height][mazePtr->gridPtr->depth];
 
-        // initializes grid mutexes
-        for (long x = 0; x < mazePtr->gridPtr->width; x++) 
-            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
-                for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
-                    pthread_mutex_init(&(fine_locks->grid_lock[x][y][z]),NULL);
+		// initializes grid mutexes
+		for (long x = 0; x < mazePtr->gridPtr->width; x++) 
+			for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+				for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
+					pthread_mutex_init(&(fine_locks->grid_lock[x][y][z]),NULL);
 
-        //initializes queue of pair coordinates mutex
-        pthread_mutex_init(&(fine_locks->queue_lock),NULL);
+		//initializes queue of pair coordinates mutex
+		pthread_mutex_init(&(fine_locks->queue_lock),NULL);
 
-        //initializes vector path mutex
-        pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
-    }
+		//initializes vector path mutex
+		pthread_mutex_init(&(fine_locks->pathVector_lock),NULL);
+	}
 
-    router_solve_arg_t routerArg = {routerPtr, mazePtr, pathVectorListPtr, fine_locks};
-    TIMER_T startTime;
-    TIMER_READ(startTime);
+	router_solve_arg_t routerArg = {routerPtr, mazePtr, pathVectorListPtr, fine_locks};
+	TIMER_T startTime;
+	TIMER_READ(startTime);
 
-    for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
-        // If not successful, gives error message and exits program
-        if (pthread_create(&tid[i], NULL, (void *)router_solve, (void *)&routerArg)) {
-            fprintf(stderr, "Unable to create thread.\n");
-            exit(1);
-        } 
-    }
+	for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
+		// If not successful, gives error message and exits program
+		if (pthread_create(&tid[i], NULL, (void *)router_solve, (void *)&routerArg)) {
+			fprintf(stderr, "Unable to create thread.\n");
+			exit(1);
+		} 
+	}
 
-    for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
-        if (pthread_join(tid[i], NULL)) {
-            fprintf(stderr, "Unable to join thread.\n");
-            exit(1);
-        }
-    }
+	for (int i = 0; i < global_params[PARAM_THREADNUM]; i++) {
+		if (pthread_join(tid[i], NULL)) {
+			fprintf(stderr, "Unable to join thread.\n");
+			exit(1);
+		}
+	}
 
-    TIMER_T stopTime;
-    TIMER_READ(stopTime);
+	TIMER_T stopTime;
+	TIMER_READ(stopTime);
 
-    long numPathRouted = 0;
-    list_iter_t it;
-    list_iter_reset(&it, pathVectorListPtr);
-    while (list_iter_hasNext(&it, pathVectorListPtr)) {
-        vector_t* pathVectorPtr = (vector_t*)list_iter_next(&it, pathVectorListPtr);
-        numPathRouted += vector_getSize(pathVectorPtr);
-    }
-    fprintf(resultFp, "Paths routed    = %li\n", numPathRouted);
-    fprintf(resultFp, "Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));
+	long numPathRouted = 0;
+	list_iter_t it;
+	list_iter_reset(&it, pathVectorListPtr);
+	while (list_iter_hasNext(&it, pathVectorListPtr)) {
+		vector_t* pathVectorPtr = (vector_t*)list_iter_next(&it, pathVectorListPtr);
+		numPathRouted += vector_getSize(pathVectorPtr);
+	}
+	fprintf(resultFp, "Paths routed    = %li\n", numPathRouted);
+	fprintf(resultFp, "Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));
 
 
-    if (fine_locks){ 
-        // frees grid mutexes
-        for (long x = 0; x < mazePtr->gridPtr->width; x++) 
-            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
-                for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
-                    pthread_mutex_destroy(&(fine_locks->grid_lock[x][y][z]));
+	if (fine_locks){ 
+		// frees grid mutexes
+		for (long x = 0; x < mazePtr->gridPtr->width; x++) 
+			for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+				for (long z = 0; z < mazePtr->gridPtr->depth; z++) 
+					pthread_mutex_destroy(&(fine_locks->grid_lock[x][y][z]));
 
-        //frees queue of pair coordinates mutex
-        pthread_mutex_destroy(&(fine_locks->queue_lock));
+		//frees queue of pair coordinates mutex
+		pthread_mutex_destroy(&(fine_locks->queue_lock));
 
-        //frees vector path mutex
-        pthread_mutex_destroy(&(fine_locks->pathVector_lock));
-        
-        //frees everything in mutexes' structure
-        for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
-            for (long y = 0; y < mazePtr->gridPtr->height; y++) 
-                free(fine_locks->grid_lock[x][y]);
+		//frees vector path mutex
+		pthread_mutex_destroy(&(fine_locks->pathVector_lock));
+		
+		//frees everything in mutexes' structure
+		for (long x = 0; x < mazePtr->gridPtr->width; x++){ 
+			for (long y = 0; y < mazePtr->gridPtr->height; y++) 
+				free(fine_locks->grid_lock[x][y]);
 
-            free(fine_locks->grid_lock[x]);
-        }
-        free(fine_locks->grid_lock);
-        free(fine_locks);
-    }
+			free(fine_locks->grid_lock[x]);
+		}
+		free(fine_locks->grid_lock);
+		free(fine_locks);
+	}
 
-    /*
-     * Check solution and clean up
-     */
-    assert(numPathRouted <= numPathToRoute);
-    bool_t status = maze_checkPaths(mazePtr, pathVectorListPtr, resultFp, global_doPrint);
-    assert(status == TRUE);
-    fputs("Verification passed.\n",resultFp);
+	/*
+	 * Check solution and clean up
+	 */
+	assert(numPathRouted <= numPathToRoute);
+	bool_t status = maze_checkPaths(mazePtr, pathVectorListPtr, resultFp, global_doPrint);
+	assert(status == TRUE);
+	fputs("Verification passed.\n",resultFp);
 
-    maze_free(mazePtr);
-    router_free(routerPtr);
+	maze_free(mazePtr);
+	router_free(routerPtr);
 
-    list_iter_reset(&it, pathVectorListPtr);
-    while (list_iter_hasNext(&it, pathVectorListPtr)) {
-        vector_t* pathVectorPtr = (vector_t*)list_iter_next(&it, pathVectorListPtr);
-        vector_t* v;
-        while((v = vector_popBack(pathVectorPtr))) {
-            // v stores pointers to longs stored elsewhere; no need to free them here
-            vector_free(v);
-        }
-        vector_free(pathVectorPtr);
-    }
-    list_free(pathVectorListPtr);
+	list_iter_reset(&it, pathVectorListPtr);
+	while (list_iter_hasNext(&it, pathVectorListPtr)) {
+		vector_t* pathVectorPtr = (vector_t*)list_iter_next(&it, pathVectorListPtr);
+		vector_t* v;
+		while((v = vector_popBack(pathVectorPtr))) {
+			// v stores pointers to longs stored elsewhere; no need to free them here
+			vector_free(v);
+		}
+		vector_free(pathVectorPtr);
+	}
+	list_free(pathVectorListPtr);
 
-    fclose(resultFp);
-   // pthread_exit(NULL);
-    exit(0);
+	fclose(resultFp);
+	// pthread_exit(NULL);
+	exit(0);
 }
 
 

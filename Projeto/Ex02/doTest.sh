@@ -12,11 +12,11 @@ else
 
 	for ((N=1; N<=$1; N++))
 	do
-		(cd ./CircuitRouter-ParSolver && make && exec ./CircuitRouter-ParSolver ${N} "../$2")
+		(cd ./CircuitRouter-ParSolver && make && exec ./CircuitRouter-ParSolver -t ${N} "../$2")
 		
 		tPar=$(grep Elapsed "$2.res" | cut -f 7 -d ' ')
 
-		SpUp=$(echo "scale=6; $tPar / $tSeq" | bc)
+		SpUp=$(echo "scale=6; $tSeq / $tPar" | bc)
 
 		echo "$N,$tPar,$SpUp" >> "$2.speedups.csv"
 	done
