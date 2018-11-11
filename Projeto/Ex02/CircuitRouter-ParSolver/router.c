@@ -408,11 +408,11 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 
 		if ((p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
 			//if this position is locked, free all the resources acquired
-			for (long j = 0; j < i; j++){
+			for (long j = 0; j <= i; j++){
 				grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
 				p = pthread_mutex_unlock(&grid_lock[x][y][z]);
 				assert(p == 0);
-				tim.tv_nsec=random()%800;
+				tim.tv_nsec=random()%100;
 				nanosleep(&tim,NULL);
 			}
 			return FALSE;
