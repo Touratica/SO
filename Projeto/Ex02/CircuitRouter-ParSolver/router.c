@@ -401,15 +401,15 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 	for(long i = 0; i < vector_getSize(pointVectorPtr); i++){
 		grid_getPointIndices(gridPtr,vector_at(pointVectorPtr, i), &x, &y, &z);
 
-		if ((p=pthread_mutex_trylock(&grid_lock[x][y][z]))==EBUSY){
+		if ((p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
 			//if this position is locked, free all the resources acquired
-			for(long j = 0; j < i; j++){
-				grid_getPointIndices(gridPtr,vector_at(pointVectorPtr, j), &x, &y, &z);
-				pthread_mutex_unlock(&grid_lock[x][y][z]);
+			for (long j = 0; j <= i; j++){
+				grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
+				assert(pthread_mutex_unlock(&grid_lock[x][y][z]) == 0);
 			}
 			return FALSE;
 		}
-		assert(p==0); //checks if there occured another error in trylock
+		assert(p == 0); //checks if there occured another error in trylock
 	}
 
 	return TRUE;

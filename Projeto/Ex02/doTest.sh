@@ -10,9 +10,10 @@ else
 	echo "#threads,exec_time,speedup" > "$2.speedups.csv"
 	echo "1S,$tSeq,1" >> "$2.speedups.csv"
 
+	(cd ./CircuitRouter-ParSolver && make)
 	for ((N=1; N<=$1; N++))
 	do
-		(cd ./CircuitRouter-ParSolver && make && exec ./CircuitRouter-ParSolver -t ${N} "../$2")
+		(cd ./CircuitRouter-ParSolver && exec ./CircuitRouter-ParSolver -t ${N} "../$2")
 		
 		tPar=$(grep Elapsed "$2.res" | cut -f 7 -d ' ')
 
