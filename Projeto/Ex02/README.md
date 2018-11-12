@@ -62,7 +62,7 @@ make clean
 
 ## Testing
 
-To test both the sequential and the parallel versions of the Circuit Router, run the [doTest.sh](doTest.sh) script, specifying the maximum number of threads the parallel version will run and the input file. This will create a file within the same folder as the input file with the results of the test.
+To test both the sequential and the parallel versions of the Circuit Router, run the [doTest.sh](doTest.sh) script, specifying the maximum number of threads the parallel version will run and the input file. This will compile both versions, create a file within the same folder as the input file with the results of the test and then delete de executables and binary files.
 
 ```bash
 ./doTest.sh 4 inputs/random-x32-y32-z3-n64.txt

@@ -309,9 +309,7 @@ void router_solve (void* argPtr){
 	assert(myGridPtr);
 	long bendCost = routerPtr->bendCost;
 	queue_t* myExpansionQueuePtr = queue_alloc(-1);
-	// struct timespec tim;
-	// tim.tv_sec=0;
-
+	
 	/*
 	 * Iterate over work list to route each path. This involves an
 	 * 'expansion' and 'traceback' phase for each source/destination pair.
@@ -323,10 +321,8 @@ void router_solve (void* argPtr){
 			coordinatePairPtr = NULL;
 		} else {
 			//when lock succeeds returns 0
-			while ((p = pthread_mutex_lock(&(routerArgPtr->fine_locks->queue_lock)))){
+			while ((p = pthread_mutex_lock(&(routerArgPtr->fine_locks->queue_lock)))) {
 				assert(p==EBUSY); //if error on trylock aborts program 
-				//tim.tv_nsec=random()%800;
-				//nanosleep(&tim,NULL);
 			}
 
 			coordinatePairPtr = (pair_t*)queue_pop(workQueuePtr);
@@ -379,10 +375,8 @@ void router_solve (void* argPtr){
 	 * Add my paths to global list
 	 */
 	list_t* pathVectorListPtr = routerArgPtr->pathVectorListPtr;
-	while ((p = pthread_mutex_lock(&(routerArgPtr->fine_locks->pathVector_lock)))){
+	while ((p = pthread_mutex_lock(&(routerArgPtr->fine_locks->pathVector_lock)))) {
 		assert(p == EBUSY); //if error on trylock aborts program 
-		//tim.tv_nsec = random()%800;
-		//nanosleep(&tim,NULL);
 	}
 
 	list_insert(pathVectorListPtr, (void*)myPathVectorPtr);
@@ -409,28 +403,16 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 	while (1) {
 		for(long i = 1; i < vector_getSize(pointVectorPtr)-1; i++){
 			grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, i), &x, &y, &z);
-			if (!grid_isPointEmpty(gridPtr, x, y, z)) {
-				for (long j = i - 1; j > 0; j--)
-				{
-					grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
-					p = pthread_mutex_unlock(&grid_lock[x][y][z]);
-					assert(p == 0);
-				}
-				tim.tv_nsec = random() % 100;
-				nanosleep(&tim, NULL);
-				return FALSE;
-			}
-			if ((p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
-				//if this position is locked, free all the resources acquired
-				for (long j = i-1; j > 0; j--){
-					grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
-					p = pthread_mutex_unlock(&grid_lock[x][y][z]);
-					assert(p == 0);
-				}
-				tim.tv_nsec = random()%100;
-				nanosleep(&tim, NULL);
-				return FALSE;
-				// break;
+			if (grid_isPointFull(gridPtr, x, y, z) || (p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
+					for (long j = i - 1; j > 0; j--)
+					{
+						grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
+						p = pthread_mutex_unlock(&grid_lock[x][y][z]);
+						assert(p == 0);
+					}
+					tim.tv_nsec = random() % 100;
+					nanosleep(&tim, NULL);
+					return FALSE;
 			}
 			else {
 				assert(p == 0); //checks if there occured another error in trylock
@@ -438,7 +420,6 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 		}
 		break;
 	}
-	
 	return TRUE;
 }
 
