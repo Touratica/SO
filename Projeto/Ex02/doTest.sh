@@ -3,7 +3,9 @@ if [ "$#" -ne 2 ]; then
     echo "Missing arguments"
 	echo "Number of threads and input file required"
 else
-	(cd ./CircuitRouter-SeqSolver && make && exec ./CircuitRouter-SeqSolver "../$2")
+	(cd ./CircuitRouter-SeqSolver && make)
+	echo "Executing single-threaded..."
+	(cd ./CircuitRouter-SeqSolver && exec ./CircuitRouter-SeqSolver "../$2")
 	
 	tSeq=$(grep Elapsed "$2.res" | cut -f 7 -d ' ')
 
@@ -13,6 +15,7 @@ else
 	(cd ./CircuitRouter-ParSolver && make)
 	for ((N=1; N<=$1; N++))
 	do
+		echo "Executing with $N thread(s)..."
 		(cd ./CircuitRouter-ParSolver && exec ./CircuitRouter-ParSolver -t ${N} "../$2")
 		
 		tPar=$(grep Elapsed "$2.res" | cut -f 7 -d ' ')
