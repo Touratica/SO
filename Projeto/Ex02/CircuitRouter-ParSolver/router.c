@@ -318,7 +318,6 @@ void router_solve (void* argPtr){
 	 */
 	int p;
 	while (1) {
-
 		pair_t* coordinatePairPtr;
 		if (queue_isEmpty(workQueuePtr)) {
 			coordinatePairPtr = NULL;
@@ -407,25 +406,37 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 	tim.tv_sec = 0;
 	
 	// goes cell by cell to lock each position of the calculated path
-	for(long i = 1; i < vector_getSize(pointVectorPtr)-1; i++){
-		grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, i), &x, &y, &z);
-		if (!grid_isPointEmpty(gridPtr, x, y, z)) {
-			return FALSE;
-		}
-		if ((p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
-			//if this position is locked, free all the resources acquired
-			for (long j = 1; j < i; j++){
-				grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
-				p = pthread_mutex_unlock(&grid_lock[x][y][z]);
-				assert(p == 0);
+	while (1) {
+		for(long i = 1; i < vector_getSize(pointVectorPtr)-1; i++){
+			grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, i), &x, &y, &z);
+			if (!grid_isPointEmpty(gridPtr, x, y, z)) {
+				for (long j = i - 1; j > 0; j--)
+				{
+					grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
+					p = pthread_mutex_unlock(&grid_lock[x][y][z]);
+					assert(p == 0);
+				}
+				tim.tv_nsec = random() % 100;
+				nanosleep(&tim, NULL);
+				return FALSE;
 			}
-			tim.tv_nsec = random()%100;
-			nanosleep(&tim, NULL);
-			i = 1;
+			if ((p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
+				//if this position is locked, free all the resources acquired
+				for (long j = i-1; j > 0; j--){
+					grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
+					p = pthread_mutex_unlock(&grid_lock[x][y][z]);
+					assert(p == 0);
+				}
+				tim.tv_nsec = random()%100;
+				nanosleep(&tim, NULL);
+				return FALSE;
+				// break;
+			}
+			else {
+				assert(p == 0); //checks if there occured another error in trylock
+			}
 		}
-		else {
-			assert(p == 0); //checks if there occured another error in trylock
-		}
+		break;
 	}
 	
 	return TRUE;
@@ -435,7 +446,7 @@ void unlock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 	long x, y, z;
 	int p;
 
-	for (long i = 1; i < vector_getSize(pointVectorPtr)-1; i++) {
+	for (long i = 0; i < vector_getSize(pointVectorPtr); i++) {
 		grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, i), &x, &y, &z);
 		p = pthread_mutex_unlock(&grid_lock[x][y][z]);
 		assert(p == 0);
