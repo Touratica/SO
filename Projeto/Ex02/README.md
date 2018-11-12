@@ -72,5 +72,8 @@ To test both the sequential and the parallel versions of the Circuit Router, run
 
 The results folder has the results of all the input files with a circuit with a size equal or inferior to 256x256, that were run in a computer with the following specifications:
 
-* 8 cores (using hyper-threading);
+* Intel® Core™ i7-6700HQ Processor
+* \# of Cores: 4 cores
+* \# of Threads: 8
+* Processor Base Frequency: 2.6GHz
 * Linux UBUNTU-U9625J0I 4.18.0-10-generic #11-Ubuntu SMP Thu Oct 11 15:13:55 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
