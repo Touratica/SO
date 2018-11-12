@@ -400,25 +400,22 @@ bool_t lock_cells(grid_t *gridPtr, vector_t *pointVectorPtr, pthread_mutex_t ***
 	tim.tv_sec = 0;
 	
 	// goes cell by cell to lock each position of the calculated path
-	while (1) {
-		for(long i = 1; i < vector_getSize(pointVectorPtr)-1; i++){
-			grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, i), &x, &y, &z);
-			if (grid_isPointFull(gridPtr, x, y, z) || (p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
-					for (long j = i - 1; j > 0; j--)
-					{
-						grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
-						p = pthread_mutex_unlock(&grid_lock[x][y][z]);
-						assert(p == 0);
-					}
-					tim.tv_nsec = random() % 100;
-					nanosleep(&tim, NULL);
-					return FALSE;
-			}
-			else {
-				assert(p == 0); //checks if there occured another error in trylock
-			}
+	for(long i = 1; i < vector_getSize(pointVectorPtr)-1; i++){
+		grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, i), &x, &y, &z);
+		if (grid_isPointFull(gridPtr, x, y, z) || (p = pthread_mutex_trylock(&grid_lock[x][y][z])) == EBUSY) {
+				for (long j = i - 1; j > 0; j--)
+				{
+					grid_getPointIndices(gridPtr, vector_at(pointVectorPtr, j), &x, &y, &z);
+					p = pthread_mutex_unlock(&grid_lock[x][y][z]);
+					assert(p == 0);
+				}
+				tim.tv_nsec = random() % 100;
+				nanosleep(&tim, NULL);
+				return FALSE;
 		}
-		break;
+		else {
+			assert(p == 0); //checks if there occured another error in trylock
+		}
 	}
 	return TRUE;
 }
