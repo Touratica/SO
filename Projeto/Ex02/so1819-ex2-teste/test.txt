@@ -1,0 +1,1 @@
+Criar flag -w opcional, que recebe uma string qualquer. Esta string deve ser impressa no início de cada de cada thread do router_solve.
