@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -20,7 +21,7 @@
 #define COMMAND_EXIT "exit"
 #define COMMAND_RUN "run"
 
-#define MAXARGS 3
+#define MAXARGS 3    //run inputfile pipe
 #define BUFFER_SIZE 100
 
 void waitForChild(vector_t *children) {
@@ -70,7 +71,12 @@ int main (int argc, char** argv) {
     int MAXCHILDREN = -1;
     vector_t *children;
     int runningChildren = 0;
+    struct timeval *time;
+   /* fd_set fdset;
 
+    FD_ZERO(&fdset); //fazer estes dois duas vezes :1 p stdin e outro p fileno do pipe 
+    FD_SET(1,&fdset);
+*/
     if(argv[1] != NULL){
         MAXCHILDREN = atoi(argv[1]);
     }
@@ -78,7 +84,7 @@ int main (int argc, char** argv) {
     children = vector_alloc(MAXCHILDREN);
 
 
-    printf("Welcome to CircuitRouter-SimpleShell\n\n");
+    printf("Welcome to CircuitRouter-AdvancedShell\n\n");
 
     while (1) {
         int numArgs;

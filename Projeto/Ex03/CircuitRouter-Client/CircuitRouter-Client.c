@@ -43,7 +43,7 @@ int main (int argc, char** argv) {
 	char *template = "/tmp/CircuitRouter-Client.XXXXXX";
 	char *tmpname = mkstemp(template);
 	mkfifo(tmpname, 0777);
-	perror("Error while creating pipe for the client"); // Não deveria chegar aqui
+	perror("Error while creating pipe for the client.");
 	exit(EXIT_FAILURE);
 
 	while (1) {
@@ -53,9 +53,12 @@ int main (int argc, char** argv) {
 
 		// TODO verificar erros
 		FILE *advShellPipe = fopen(advShellPipeName, "a");
-		fprintf(advShellPipe, buffer);
+		perror("Pipe doesn't exist."); //checks if a pipe exists (if fopen sets errno)
+		fprintf(advShellPipe, buffer); 
 		fclose(advShellPipe);
 
 	}
+	unlink(tmpname);
+	return 0;
 
 }

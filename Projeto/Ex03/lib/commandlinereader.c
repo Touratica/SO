@@ -28,14 +28,16 @@ int readLineArguments(char **argVector, int vectorSize, char *buffer, int buffer
   int numTokens = 0;
   char *s = " \r\n\t";
 
+
   int i;
 
   char *token;
 
+
   if (argVector == NULL || buffer == NULL || vectorSize <= 0 || bufferSize <= 0)
      return 0;
 
-  if (fgets(buffer, bufferSize, stdin) == NULL) {
+  if (fgets(buffer, bufferSize, stdin == NULL)) {
     return -1;
   }
 
