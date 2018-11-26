@@ -47,36 +47,15 @@ int main (int argc, char** argv) {
 	exit(EXIT_FAILURE);
 
 	while (1) {
-		int numArgs;
+		fgets(buffer, BUFFER_SIZE, stdin);
+		buffer[strlen(buffer)-1] = ' ';
+		strcat(buffer, tmpname);
 
-		numArgs = readLineArguments(args, MAXARGS+1, buffer, BUFFER_SIZE);
+		// TODO verificar erros
+		FILE *advShellPipe = fopen(advShellPipeName, "a");
+		fprintf(advShellPipe, buffer);
+		fclose(advShellPipe);
 
-		/* EOF (end of file) do stdin ou comando "sair" */
-		if (numArgs < 0) {
-			printf("CircuitRouter-Client will exit.\n--\n");
-			break;
-		}
-		else if (numArgs > 0 && strcmp(args[0], COMMAND_RUN) == 0) {
-			if (numArgs < 2) {
-				printf("%s: invalid syntax. Try again.\n", COMMAND_RUN);
-				continue;
-			}
-
-			char *newArgs[3] = {args[1], tmpname, NULL}; // passar também o pipe deste cliente
-
-			// Substituir por passar argumentos à AdvShell
-			FILE *advShellPipe = fopen(advShellPipeName, "a");
-
-			perror("Error while executing SeqSolver"); // Nao deveria chegar aqui
-			exit(EXIT_FAILURE);
-			
-		}
-
-		else if (numArgs == 0){
-			/* Nenhum argumento; ignora e volta a pedir */
-			continue;
-		}
-		else
-			printf("Command not supported.\n");
 	}
+
 }
