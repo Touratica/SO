@@ -9,11 +9,6 @@ typedef struct {
     int status;
 } child_t;
 
-struct timeval {
-long tv_sec; /* seconds */
-long tv_usec; /* microseconds */
-};
-
 void waitForChild(vector_t *children);
 void printChildren(vector_t *children);
 

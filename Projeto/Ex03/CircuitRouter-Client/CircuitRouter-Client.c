@@ -59,6 +59,6 @@ int main (int argc, char** argv) {
 
 	}
 	unlink(tmpname);
-	return 0;
+	exit(EXIT_SUCCESS);
 
 }

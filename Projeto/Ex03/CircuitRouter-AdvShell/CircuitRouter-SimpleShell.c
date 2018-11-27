@@ -71,17 +71,43 @@ int main (int argc, char** argv) {
     int MAXCHILDREN = -1;
     vector_t *children;
     int runningChildren = 0;
-    struct timeval *time;
-   /* fd_set fdset;
+    
+    char * advShellPath = get_current_dir_name();
+    perror("Unable to set pipe's path.");
 
-    FD_ZERO(&fdset); //fazer estes dois duas vezes :1 p stdin e outro p fileno do pipe 
-    FD_SET(1,&fdset);
-*/
+    char* programName = (char *) malloc(sizeof(char)*strlen(argv[0]-1));//tirar . e / e acresc /0
+
+    for (int i = 2; i <= strlen(argv[0]); i++){
+        programName[i-2]= argv[0][i];
+    }
+
+    char * advShellPipe = (char *) malloc(sizeof(char)*(strlen(advShellPath)+strlen(programName) + strlen( ".pipe")+1)); //1 =\0
+
+    strcat(advShellPipe, advShellPath);
+    strcat(advShellPipe, programName);
+    strcat(advShellPipe, ".pipe");
+
+    fd_set readfds;
+
+
+    mkfifo(advShellPipe, 0777);
+    perror("Unable to create pipe.");
+    
+
+    FD_ZERO(&readfds);
+
+    FD_SET(0,&readfds);
+    FD_SET(fileno(advShellPipe), &readfds);
+
+   
+
+/*
     if(argv[1] != NULL){
         MAXCHILDREN = atoi(argv[1]);
     }
+*/
 
-    children = vector_alloc(MAXCHILDREN);
+    children = vector_alloc(MAXCHILDREN); //Aloca memoria so para um filho
 
 
     printf("Welcome to CircuitRouter-AdvancedShell\n\n");
@@ -89,11 +115,20 @@ int main (int argc, char** argv) {
     while (1) {
         int numArgs;
 
-        numArgs = readLineArguments(args, MAXARGS+1, buffer, BUFFER_SIZE);
+        if (select(2,&readfds, NULL, NULL, NULL) < 0 && errno != EINTR)
+            perror("Inputs not read.");
+
+        if (FD_ISSET(0,&readfds)){
+            numArgs =  readLineArguments(0, args, MAXARGS+1, buffer, BUFFER_SIZE);
+        }
+        if (FD_ISSET(fileno(advShellPipe),&readfds)){
+            numArgs =  readLineArguments(fileno(advShellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
+        }
 
         /* EOF (end of file) do stdin ou comando "sair" */
+
         if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
-            printf("CircuitRouter-SimpleShell will exit.\n--\n");
+            printf("CircuitRouter-AdvancedShell will exit.\n--\n");
 
             /* Espera pela terminacao de cada filho */
             while (runningChildren > 0) {
@@ -102,7 +137,7 @@ int main (int argc, char** argv) {
             }
 
             printChildren(children);
-            printf("--\nCircuitRouter-SimpleShell ended.\n");
+            printf("--\nCircuitRouter-AdvancedShell ended.\n");
             break;
         }
 

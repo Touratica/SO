@@ -23,7 +23,7 @@ Arguments:
 Return value:
  The number of arguments that were read, or -1 if some error occurred.
 */
-int readLineArguments(char **argVector, int vectorSize, char *buffer, int bufferSize)
+int readLineArguments(int fd, char **argVector, int vectorSize, char *buffer, int bufferSize)
 {
   int numTokens = 0;
   char *s = " \r\n\t";
@@ -37,7 +37,7 @@ int readLineArguments(char **argVector, int vectorSize, char *buffer, int buffer
   if (argVector == NULL || buffer == NULL || vectorSize <= 0 || bufferSize <= 0)
      return 0;
 
-  if (fgets(buffer, bufferSize, stdin == NULL)) {
+  if (fgets(buffer, bufferSize, fd)== NULL) {
     return -1;
   }
 
