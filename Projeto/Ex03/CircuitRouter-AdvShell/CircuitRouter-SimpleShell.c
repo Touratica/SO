@@ -101,13 +101,13 @@ int main (int argc, char** argv) {
 
    
 
-/*
+
     if(argv[1] != NULL){
         MAXCHILDREN = atoi(argv[1]);
     }
-*/
 
-    children = vector_alloc(MAXCHILDREN); //Aloca memoria so para um filho
+
+    children = vector_alloc(MAXCHILDREN); 
 
 
     printf("Welcome to CircuitRouter-AdvancedShell\n\n");
@@ -121,27 +121,27 @@ int main (int argc, char** argv) {
         if (FD_ISSET(0,&readfds)){
             numArgs =  readLineArguments(0, args, MAXARGS+1, buffer, BUFFER_SIZE);
         }
+            if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
+                printf("CircuitRouter-AdvancedShell will exit.\n--\n");
+
+                /* Espera pela terminacao de cada filho */
+                while (runningChildren > 0) {
+                    waitForChild(children);
+                    runningChildren --;
+                }
+
+                printChildren(children);
+                printf("--\nCircuitRouter-AdvancedShell ended.\n");
+                break;
+            }
         if (FD_ISSET(fileno(advShellPipe),&readfds)){
             numArgs =  readLineArguments(fileno(advShellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
         }
 
         /* EOF (end of file) do stdin ou comando "sair" */
 
-        if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
-            printf("CircuitRouter-AdvancedShell will exit.\n--\n");
 
-            /* Espera pela terminacao de cada filho */
-            while (runningChildren > 0) {
-                waitForChild(children);
-                runningChildren --;
-            }
-
-            printChildren(children);
-            printf("--\nCircuitRouter-AdvancedShell ended.\n");
-            break;
-        }
-
-        else if (numArgs > 0 && strcmp(args[0], COMMAND_RUN) == 0){
+        if (numArgs > 0 && strcmp(args[0], COMMAND_RUN) == 0){
             int pid;
             if (numArgs < 2) {
                 printf("%s: invalid syntax. Try again.\n", COMMAND_RUN);
@@ -151,21 +151,20 @@ int main (int argc, char** argv) {
                 waitForChild(children);
                 runningChildren--;
             }
-
+            //marcação do tempo inicial 
             pid = fork();
             if (pid < 0) {
                 perror("Failed to create new process.");
                 exit(EXIT_FAILURE);
             }
 
-            if (pid > 0) {
+            if (pid > 0) { 
                 runningChildren++;
                 printf("%s: background child started with PID %d.\n\n", COMMAND_RUN, pid);
                 continue;
             } else {
                 char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
                 char *newArgs[3] = {seqsolver, args[1], NULL};
-
                 execv(seqsolver, newArgs);
                 perror("Error while executing child process"); // Nao deveria chegar aqui
                 exit(EXIT_FAILURE);

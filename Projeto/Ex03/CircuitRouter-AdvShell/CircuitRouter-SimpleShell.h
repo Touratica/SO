@@ -3,10 +3,12 @@
 
 #include "lib/vector.h"
 #include <sys/types.h>
+#include <time.h>
 
 typedef struct {
     pid_t pid;
     int status;
+    clock_t start,end;
 } child_t;
 
 void waitForChild(vector_t *children);
