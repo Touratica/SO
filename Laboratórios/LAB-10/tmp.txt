@@ -1,0 +1,37 @@
+mktemp
+mkfifo(nomeDoPipe, 0777) - Se der erro a criar na diretoria atual, criar em /tmp/
+
+fopen
+fclose
+
+Fazer fopen com flag:
+	r 	=> O_RDONLY						(leitura, bloqueante)
+	r+	=> O_RDWR						(leitura, não bloqueante)
+	a	=> O_WRONLY, O_CREATE, O_APPEND	(O_CREATE não faz diferença do lado do servidor, o pipe já está criado)
+
+fgets (do lado do cliente)
+readLineArguments (do lado da shell)
+maxargs = 3
+
+fprintf + newline(\n)
+usar sempre fflush depois do fprintf
+
+BUFFER_SIZE (cliente = shell)
+
+fazer reset to set antes do select
+
+select(fd, &setfd, NULL, NULL, NULL)
+	verificar se retorna -1 && errno == EINTR (chamar select outra vez)
+
+fileno - retorna df a partir de FILE*
+fd = fd do pipe + 1
+fd_set - declarar variável deste tipo
+FD_ZERO
+FD_SET	(2x)
+
+if(IF_ISSET(stdin))
+
+chamar sigaction em vez de signal
+
+signal(SIGPIPE, SIG_IGN)
+fflush == E_PIPE: exit
