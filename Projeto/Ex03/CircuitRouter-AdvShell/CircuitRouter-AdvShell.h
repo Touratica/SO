@@ -13,5 +13,6 @@ typedef struct {
 
 void waitForChild(vector_t *children);
 void printChildren(vector_t *children);
+void sigchldTreatment();
 
 #endif /* CIRCUITROUTER_SHELL_H */

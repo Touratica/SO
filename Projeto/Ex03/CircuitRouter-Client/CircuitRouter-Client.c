@@ -42,9 +42,10 @@ int main (int argc, char** argv) {
 	// Usar mkstemp para criar ficheiro temporário e mkfifo para criar pipe para o client
 	char *template = "/tmp/CircuitRouter-Client.XXXXXX";
 	char *tmpname = mkstemp(template);
-	mkfifo(tmpname, 0777);
-	perror("Error while creating pipe for the client.");
-	exit(EXIT_FAILURE);
+	if (!mkfifo(tmpname, 0777)) {
+		perror("Error while creating pipe for the client.");
+		exit(EXIT_FAILURE);
+	}
 
 	while (1) {
 		fgets(buffer, BUFFER_SIZE, stdin);
@@ -53,7 +54,9 @@ int main (int argc, char** argv) {
 
 		// TODO verificar erros
 		FILE *advShellPipe = fopen(advShellPipeName, "a");
-		perror("Pipe doesn't exist."); //checks if a pipe exists (if fopen sets errno)
+		if (advShellPipe == NULL) {
+			perror("Pipe doesn't exist."); //checks if a pipe exists (if fopen sets errno)
+		}
 		fprintf(advShellPipe, buffer); 
 		fclose(advShellPipe);
 
