@@ -71,7 +71,9 @@ int main (int argc, char** argv) {
     int MAXCHILDREN = -1;
     vector_t *children;
     int runningChildren = 0;
-    
+
+    sigaction(SIGCHLD, )
+
     char * advShellPath = get_current_dir_name();
     perror("Unable to set pipe's path.");
 
@@ -151,7 +153,9 @@ int main (int argc, char** argv) {
                 waitForChild(children);
                 runningChildren--;
             }
-            //marcação do tempo inicial 
+            //marcação do tempo inicial
+            TIMER_READ(stopTime);
+
             pid = fork();
             if (pid < 0) {
                 perror("Failed to create new process.");
@@ -165,6 +169,8 @@ int main (int argc, char** argv) {
             } else {
                 char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
                 char *newArgs[3] = {seqsolver, args[1], NULL};
+                close(1);
+                dup(fileno(advShellPipe));
                 execv(seqsolver, newArgs);
                 perror("Error while executing child process"); // Nao deveria chegar aqui
                 exit(EXIT_FAILURE);

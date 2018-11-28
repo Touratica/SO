@@ -2,13 +2,13 @@
 #define CIRCUITROUTER_SHELL_H
 
 #include "lib/vector.h"
+#include "lib/timer.h"
 #include <sys/types.h>
-#include <time.h>
 
 typedef struct {
     pid_t pid;
     int status;
-    clock_t start,end;
+    TIMER_T stopTime;
 } child_t;
 
 void waitForChild(vector_t *children);

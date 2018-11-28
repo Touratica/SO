@@ -11,3 +11,7 @@ Sinais
 	sigprocmask(SIG_BLOCK, sigset, NULL); // fork, exit, qd se atinge MAXCHILDREN
 
 	SIGCHLD = 1 ou mais filhos terminaram (waitpid(-1, &status, WNOHANG);)
+
+
+Pipes
+	bloquear SIGPIPE e verificar se fflush = -1 e errno=EPIPE (acontece quando se fecha a shell antes do cliente)
