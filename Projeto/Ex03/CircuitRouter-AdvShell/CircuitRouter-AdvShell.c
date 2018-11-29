@@ -74,10 +74,10 @@ int main (int argc, char** argv) {
 	int runningChildren = 0;
 	
 	struct sigaction xpto;
-	xpto.sa_handler = sigchldTreatment(); // function to be executed on signal
+	xpto.sa_handler = &sigchldTreatment; // function to be executed on signal
 	xpto.sa_flags = SA_RESTART | SA_NOCLDSTOP;
-	// sigemptyset(&xpto.sa_mask);
-	// sigaddset(&xpto.sa_mask, SIG); // FIXME signals to be blocked on sigaction
+	sigemptyset(&xpto.sa_mask);
+	sigaddset(&xpto.sa_mask, SIGPIPE); // FIXME signals to be blocked on sigaction
 	sigaction(SIGCHLD, &xpto, NULL);
 
 	char * advShellPath = get_current_dir_name();
@@ -159,8 +159,8 @@ int main (int argc, char** argv) {
 				runningChildren--;
 			}
 			//marcação do tempo inicial
-			TIMER_READ(stopTime);
-
+			TIMER_T startTime;
+			TIMER_READ(startTime);
 			pid = fork();
 			if (pid < 0) {
 				perror("Failed to create new process.");

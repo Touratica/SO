@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #ifndef CIRCUITROUTER_SHELL_H
 #define CIRCUITROUTER_SHELL_H
 
@@ -8,7 +9,7 @@
 typedef struct {
     pid_t pid;
     int status;
-    TIMER_T stopTime;
+    TIMER_T stopTime, startTime;
 } child_t;
 
 void waitForChild(vector_t *children);
