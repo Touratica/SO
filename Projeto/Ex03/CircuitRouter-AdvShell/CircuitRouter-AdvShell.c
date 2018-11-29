@@ -26,17 +26,12 @@
 
 void waitForChild(vector_t *children) {
 	while (1) {
-		child_t *child = malloc(sizeof(child_t));
-		if (child == NULL) {
-			perror("Error allocating memory");
-			exit(EXIT_FAILURE);
-		}
-		child->pid = wait(&(child->status));
-		if (child->pid < 0) {
+		int pid, status;
+		pid = wait(&status);
+		if (pid < 0) {
 			if (errno == EINTR) {
 				/* Este codigo de erro significa que chegou signal que interrompeu a espera
                    pela terminacao de filho; logo voltamos a esperar */
-				free(child);
 				continue;
 			}
 			else {
@@ -44,7 +39,12 @@ void waitForChild(vector_t *children) {
 				exit(EXIT_FAILURE);
 			}
 		}
-		vector_pushBack(children, child);
+		for (int i = 0; i < vector_getSize(children); i++) {
+			child_t *child = vector_at(children, i);
+			if (pid == child->pid) {
+				child->status = status;
+			}
+		}
 		return;
 	}
 }
@@ -59,7 +59,7 @@ void printChildren(vector_t *children) {
 			if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
 				ret = "OK";
 			}
-			printf("CHILD EXITED: (PID=%d; return %s)\n", pid, ret);
+			printf("CHILD EXITED: (PID=%d; return %s; %d s)\n", pid, ret, TIMER_DIFF_SECONDS(child->startTime, child->stopTime));
 		}
 	}
 	puts("END.");
@@ -126,8 +126,9 @@ int main (int argc, char** argv) {
 		if (FD_ISSET(0, &readfds)){
 			numArgs =  readLineArguments(0, args, MAXARGS+1, buffer, BUFFER_SIZE);
 			if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
+				sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
 				// EOF (end of file) do stdin ou comando "sair"
-				printf("CircuitRouter-AdvancedShell will exit.\n--\n");
+				printf("CircuitRouter-AdvShell will exit.\n--\n");
 
 				/* Espera pela terminacao de cada filho */
 				while (runningChildren > 0) {
@@ -135,8 +136,9 @@ int main (int argc, char** argv) {
 					runningChildren --;
 				}
 
+
 				printChildren(children);
-				printf("--\nCircuitRouter-AdvancedShell ended.\n");
+				printf("--\nCircuitRouter-AdvShell ended.\n");
 				break;
 			}
 		}
@@ -155,20 +157,31 @@ int main (int argc, char** argv) {
 				continue;
 			}
 			if (MAXCHILDREN != -1 && runningChildren >= MAXCHILDREN) {
+				sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
 				waitForChild(children);
 				runningChildren--;
+				sigprocmask(SIG_UNBLOCK, &xpto.sa_mask, NULL);
 			}
+			child_t *child = (child_t*) malloc(sizeof(child_t));
+			if (child == NULL) {
+				perror("Error on alocating memory for child.");
+			}
+			sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
 			//marcação do tempo inicial
-			TIMER_T startTime;
-			TIMER_READ(startTime);
+		
+			TIMER_READ(child->startTime);
 			pid = fork();
 			if (pid < 0) {
+				free(child);
 				perror("Failed to create new process.");
 				exit(EXIT_FAILURE);
 			}
 
-			if (pid > 0) { 
+			if (pid > 0) {
+				child->pid = pid;
+				vector_pushBack(children, child);
 				runningChildren++;
+				sigprocmask(SIG_UNBLOCK, &xpto.sa_mask, NULL);
 				printf("%s: background child started with PID %d.\n\n", COMMAND_RUN, pid);
 				continue;
 			} else {
@@ -198,7 +211,16 @@ int main (int argc, char** argv) {
 	return EXIT_SUCCESS;
 }
 
-void sigchldTreatment() {
+void sigchldTreatment(child_t *children) {
 	// FIXME implement the rest
-	waitpid(-1, &status, WNOHANG);
+	int pid, status;
+	while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {
+		for (int i = 0; i < vector_getSize(children); i++) {
+			child_t *child = vector_at(children, i);
+			if (pid == child->pid) {
+				TIMER_READ(child->stopTime);
+				child->status = status;
+			}
+		}
+	}
 }
