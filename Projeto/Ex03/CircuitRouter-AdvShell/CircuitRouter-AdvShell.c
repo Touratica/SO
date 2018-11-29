@@ -21,7 +21,7 @@
 #define COMMAND_EXIT "exit"
 #define COMMAND_RUN "run"
 
-#define MAXARGS 3    //run inputfile pipe
+#define MAXARGS 3    // run inputfile pipe
 #define BUFFER_SIZE 100
 
 void waitForChild(vector_t *children) {
@@ -125,8 +125,8 @@ int main (int argc, char** argv) {
 
 		if (FD_ISSET(0, &readfds)){
 			numArgs =  readLineArguments(0, args, MAXARGS+1, buffer, BUFFER_SIZE);
-		}
 			if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
+				// EOF (end of file) do stdin ou comando "sair"
 				printf("CircuitRouter-AdvancedShell will exit.\n--\n");
 
 				/* Espera pela terminacao de cada filho */
@@ -139,12 +139,14 @@ int main (int argc, char** argv) {
 				printf("--\nCircuitRouter-AdvancedShell ended.\n");
 				break;
 			}
-		if (FD_ISSET(fileno(advShellPipe), &readfds)){
-			numArgs =  readLineArguments(fileno(advShellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
 		}
-
-		/* EOF (end of file) do stdin ou comando "sair" */
-
+		if (FD_ISSET(fileno(advShellPipe), &readfds)) {
+			numArgs =  readLineArguments(fileno(advShellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
+			if (numArgs > 0 && (strcmp(args[0], COMMAND_RUN) != 0)) {
+				fprintf(fileno(argv[MAXARGS-1]), "Command not supoorted");
+				continue;
+			}
+		}
 
 		if (numArgs > 0 && strcmp(args[0], COMMAND_RUN) == 0) {
 			int pid;
@@ -173,7 +175,7 @@ int main (int argc, char** argv) {
 				char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
 				char *newArgs[3] = {seqsolver, args[1], NULL};
 				close(1);
-				dup(fileno(advShellPipe));
+				dup(fileno(args[MAXARGS-1]));
 				execv(seqsolver, newArgs);
 				perror("Error while executing child process"); // Nao deveria chegar aqui
 				exit(EXIT_FAILURE);

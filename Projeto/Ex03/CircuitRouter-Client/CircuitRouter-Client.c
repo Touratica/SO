@@ -49,7 +49,7 @@ int main (int argc, char** argv) {
 
 	while (1) {
 		fgets(buffer, BUFFER_SIZE, stdin);
-		buffer[strlen(buffer)-1] = ' ';
+		buffer[strlen(buffer)-1] = ' '; // replaces /n with a whitespace
 		strcat(buffer, tmpname);
 
 		// TODO verificar erros
