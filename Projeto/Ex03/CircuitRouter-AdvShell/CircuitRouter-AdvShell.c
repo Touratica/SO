@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -59,7 +60,7 @@ void printChildren(vector_t *children) {
 			if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
 				ret = "OK";
 			}
-			printf("CHILD EXITED: (PID=%d; return %s; %d s)\n", pid, ret, TIMER_DIFF_SECONDS(child->startTime, child->stopTime));
+			printf("CHILD EXITED: (PID=%d; return %s; %d s)\n", pid, ret, (int) TIMER_DIFF_SECONDS(child->startTime, child->stopTime));
 		}
 	}
 	puts("END.");
@@ -80,7 +81,7 @@ int main (int argc, char** argv) {
 	sigaddset(&xpto.sa_mask, SIGPIPE); // FIXME signals to be blocked on sigaction
 	sigaction(SIGCHLD, &xpto, NULL);
 
-	char * advShellPath = get_current_dir_name();
+	char *advShellPath = get_current_dir_name();
 	if (advShellPath == NULL) {
 			perror("Unable to set pipe's path.");
 	}
@@ -92,7 +93,7 @@ int main (int argc, char** argv) {
 		programName[i-2]= argv[0][i];
 	}
 
-	char * advShellPipe = (char*) malloc(sizeof(char) * (strlen(advShellPath) + strlen(programName) + strlen( ".pipe") + 1)); // 1 = \0
+	char *advShellPipe = (char*) malloc(sizeof(char) * (strlen(advShellPath) + strlen(programName) + strlen( ".pipe") + 1)); // 1 = \0
 
 	strcat(advShellPipe, advShellPath);
 	strcat(advShellPipe, programName);
@@ -107,7 +108,7 @@ int main (int argc, char** argv) {
 	FD_ZERO(&readfds);
 
 	FD_SET(0, &readfds);
-	FILE * shellPipe = fopen(advShellPipe,"r+");
+	FILE *shellPipe = fopen(advShellPipe,"r+");
 	FD_SET(fileno(shellPipe), &readfds);
 
 	if(argv[1] != NULL){
@@ -146,8 +147,8 @@ int main (int argc, char** argv) {
 		if (FD_ISSET(fileno(shellPipe), &readfds)) {
 			numArgs =  readLineArguments(fileno(shellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
 			if (numArgs > 0 && (strcmp(args[0], COMMAND_RUN) != 0)) {
-				FILE * clientPipe = fopen(argv[MAXARGS-1],"a");
-				fprintf(fileno(clientPipe), "Command not supported"); //FIXME nao sei se é para abrir com "a"
+				FILE *clientPipe = fopen(argv[MAXARGS-1],"a");
+				fprintf(clientPipe, "Command not supported"); //FIXME nao sei se é para abrir com "a"
 				fclose(clientPipe);
 				continue;
 			}
@@ -190,7 +191,7 @@ int main (int argc, char** argv) {
 			} else {
 				char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
 				char *newArgs[3] = {seqsolver, args[1], NULL};
-				FILE * clientPipe = fopen(argv[MAXARGS-1],"a");
+				FILE *clientPipe = fopen(argv[MAXARGS-1],"a");
 				close(1);
 				dup(fileno(clientPipe));
 				execv(seqsolver, newArgs);
@@ -215,7 +216,7 @@ int main (int argc, char** argv) {
 	return EXIT_SUCCESS;
 }
 
-void sigchldTreatment(child_t *children) {
+void sigchldTreatment(vector_t *children) {
 	// FIXME implement the rest
 	int pid, status;
 	while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {

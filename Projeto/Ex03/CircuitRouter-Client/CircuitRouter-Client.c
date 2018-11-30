@@ -51,7 +51,7 @@ int main (int argc, char** argv) {
 		perror("Error while creating pipe for the client.");
 		exit(EXIT_FAILURE);
 	}
-	FILE * readPipe = fopen(tmpname, "r+");
+	FILE *readPipe = fopen(tmpname, "r+");
 	FD_SET(fileno(readPipe), &readfds);
 	while (1) {
 		if (fgets(buffer, BUFFER_SIZE, stdin)==NULL){
