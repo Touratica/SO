@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include "lib/commandlinereader.h"
 #include "lib/vector.h"
-#include "CircuitRouter-SimpleShell.h"
+#include "CircuitRouter-Client.h"
 
 #define COMMAND_RUN "run"
 
