@@ -81,8 +81,12 @@ int main (int argc, char** argv) {
 	sigaddset(&xpto.sa_mask, SIGPIPE); // FIXME signals to be blocked on sigaction
 	sigaction(SIGCHLD, &xpto, NULL);
 
+	sigset_t *sigset = (sigset_t*) malloc(sizeof(sigset_t));
+	sigemptyset(sigset);
+	sigaddset(sigset, SIGPIPE);
+	sigaddset(sigset, SIGCHLD);
 
-	char* programName = (char*) malloc(sizeof(char) * (strlen(argv[0]-1) + 15));
+	char* programName = (char*) malloc(sizeof(char) * (strlen(argv[0]) + 15));
 	// tirou ./ e acrescentar /0 no fim
 	for (int i = 0; i <= strlen(argv[0]); i++) {
 		programName[i] = argv[0][i];
@@ -97,12 +101,8 @@ int main (int argc, char** argv) {
 		perror("Unable to create pipe.");
 	}
 
-	FD_ZERO(&readfds);
-
-	FD_SET(0, &readfds);
 	FILE *shellPipe = fopen(programName, "r+");
-	// FIXME gives segmentation fault on next line
-	FD_SET(fileno(shellPipe), &readfds);
+
 
 	if(argv[1] != NULL){
 		MAXCHILDREN = atoi(argv[1]);
@@ -114,6 +114,9 @@ int main (int argc, char** argv) {
 
 	while (1) {
 		int numArgs;
+		FD_ZERO(&readfds);
+		FD_SET(0, &readfds);
+		FD_SET(fileno(shellPipe), &readfds);
 
 		if (select(2, &readfds, NULL, NULL, NULL) < 0 && errno != EINTR)
 			perror("Inputs not read.");
@@ -121,7 +124,8 @@ int main (int argc, char** argv) {
 		if (FD_ISSET(0, &readfds)){
 			numArgs = readLineArguments(stdin, args, MAXARGS + 1, buffer, BUFFER_SIZE);
 			if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
-				sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
+
+				sigprocmask(SIG_BLOCK, sigset, NULL);
 				// EOF (end of file) do stdin ou comando "sair"
 				printf("CircuitRouter-AdvShell will exit.\n--\n");
 
@@ -133,6 +137,7 @@ int main (int argc, char** argv) {
 
 
 				printChildren(children);
+
 				printf("--\nCircuitRouter-AdvShell ended.\n");
 				break;
 			}
@@ -154,7 +159,7 @@ int main (int argc, char** argv) {
 				continue;
 			}
 			if (MAXCHILDREN != -1 && runningChildren >= MAXCHILDREN) {
-				sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
+				sigprocmask(SIG_BLOCK, sigset, NULL);
 				waitForChild(children);
 				runningChildren--;
 				sigprocmask(SIG_UNBLOCK, &xpto.sa_mask, NULL);
@@ -163,9 +168,9 @@ int main (int argc, char** argv) {
 			if (child == NULL) {
 				perror("Error on alocating memory for child.");
 			}
-			sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
+			sigprocmask(SIG_BLOCK, sigset, NULL);
 			//marcação do tempo inicial
-		
+
 			TIMER_READ(child->startTime);
 			pid = fork();
 			if (pid < 0) {
@@ -178,7 +183,7 @@ int main (int argc, char** argv) {
 				child->pid = pid;
 				vector_pushBack(children, child);
 				runningChildren++;
-				sigprocmask(SIG_UNBLOCK, &xpto.sa_mask, NULL);
+				sigprocmask(SIG_UNBLOCK, sigset, NULL);
 				printf("%s: background child started with PID %d.\n\n", COMMAND_RUN, pid);
 				continue;
 			} else {
