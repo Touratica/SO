@@ -238,7 +238,7 @@ int main(int argc, char** argv){
     list_free(pathVectorListPtr);
 
     fclose(resultFp);
-    fprintf(1, "Circuit solved");
+    fprintf(stdout, "Circuit solved");
     close(1);
     exit(0);
 }

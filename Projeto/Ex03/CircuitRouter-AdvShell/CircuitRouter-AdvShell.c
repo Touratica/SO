@@ -4,9 +4,9 @@
 // Sistemas Operativos, DEI/IST/ULisboa 2018-19
 */
 
+#include "CircuitRouter-AdvShell.h"
 #include "lib/commandlinereader.h"
 #include "lib/vector.h"
-#include "CircuitRouter-AdvShell.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -96,12 +96,13 @@ int main (int argc, char** argv) {
 	char *advShellPipe = (char*) malloc(sizeof(char) * (strlen(advShellPath) + strlen(programName) + strlen( ".pipe") + 1)); // 1 = \0
 
 	strcat(advShellPipe, advShellPath);
+	strcat(advShellPipe, "/");
 	strcat(advShellPipe, programName);
 	strcat(advShellPipe, ".pipe");
 
 	fd_set readfds;
 
-	if (!mkfifo(advShellPipe, 0777)) {
+	if (mkfifo(advShellPipe, 0777)) {
 		perror("Unable to create pipe.");
 	}
 
@@ -124,9 +125,9 @@ int main (int argc, char** argv) {
 
 		if (select(2, &readfds, NULL, NULL, NULL) < 0 && errno != EINTR)
 			perror("Inputs not read.");
-
+		
 		if (FD_ISSET(0, &readfds)){
-			numArgs =  readLineArguments(0, args, MAXARGS+1, buffer, BUFFER_SIZE);
+			numArgs = readLineArguments(stdin, args, MAXARGS + 1, buffer, BUFFER_SIZE);
 			if (numArgs < 0 || (numArgs > 0 && (strcmp(args[0], COMMAND_EXIT) == 0))) {
 				sigprocmask(SIG_BLOCK, &xpto.sa_mask, NULL);
 				// EOF (end of file) do stdin ou comando "sair"
@@ -145,7 +146,7 @@ int main (int argc, char** argv) {
 			}
 		}
 		if (FD_ISSET(fileno(shellPipe), &readfds)) {
-			numArgs =  readLineArguments(fileno(shellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
+			numArgs =  readLineArguments(shellPipe, args, MAXARGS+1, buffer, BUFFER_SIZE);
 			if (numArgs > 0 && (strcmp(args[0], COMMAND_RUN) != 0)) {
 				FILE *clientPipe = fopen(argv[MAXARGS-1],"a");
 				fprintf(clientPipe, "Command not supported"); //FIXME nao sei se é para abrir com "a"
@@ -212,6 +213,7 @@ int main (int argc, char** argv) {
 		free(vector_at(children, i));
 	}
 	vector_free(children);
+	unlink(advShellPipe);
 
 	return EXIT_SUCCESS;
 }
