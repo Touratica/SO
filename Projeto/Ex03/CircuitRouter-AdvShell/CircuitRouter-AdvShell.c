@@ -25,7 +25,10 @@
 #define MAXARGS 3    // run inputfile pipe
 #define BUFFER_SIZE 100
 
-void waitForChild(vector_t *children) {
+vector_t *children;
+int runningChildren = 0;
+
+void waitForChild() {
 	while (1) {
 		int pid, status;
 		pid = wait(&status);
@@ -36,7 +39,7 @@ void waitForChild(vector_t *children) {
 				continue;
 			}
 			else {
-				perror("Unexpected error while waiting for child.");
+				perror("Unexpected error while waiting for child.\n");
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -50,7 +53,7 @@ void waitForChild(vector_t *children) {
 	}
 }
 
-void printChildren(vector_t *children) {
+void printChildren() {
 	for (int i = 0; i < vector_getSize(children); ++i) {
 		child_t *child = vector_at(children, i);
 		int status = child->status;
@@ -71,8 +74,6 @@ int main (int argc, char** argv) {
 	char *args[MAXARGS + 1];
 	char buffer[BUFFER_SIZE];
 	int MAXCHILDREN = -1;
-	vector_t *children;
-	int runningChildren = 0;
 	
 	struct sigaction xpto;
 	xpto.sa_handler = &sigchldTreatment; // function to be executed on signal
@@ -98,28 +99,29 @@ int main (int argc, char** argv) {
 
 
 	if (mkfifo(programName, 0777)) {
-		perror("Unable to create pipe.");
+		perror("Unable to create pipe.\n");
 	}
 
 	FILE *shellPipe = fopen(programName, "r+");
-
 
 	if(argv[1] != NULL){
 		MAXCHILDREN = atoi(argv[1]);
 	}
 
 	children = vector_alloc(MAXCHILDREN); 
+	FD_ZERO(&readfds);
+	FD_SET(0, &readfds);
+	FD_SET(fileno(shellPipe), &readfds);
 
 	printf("Welcome to CircuitRouter-AdvancedShell\n\n");
 
 	while (1) {
 		int numArgs;
-		FD_ZERO(&readfds);
-		FD_SET(0, &readfds);
-		FD_SET(fileno(shellPipe), &readfds);
+		bool_t isPipe = FALSE;
+		
 
 		if (select(2, &readfds, NULL, NULL, NULL) < 0 && errno != EINTR)
-			perror("Inputs not read.");
+			perror("Inputs not read.\n");
 		
 		if (FD_ISSET(0, &readfds)){
 			numArgs = readLineArguments(stdin, args, MAXARGS + 1, buffer, BUFFER_SIZE);
@@ -131,12 +133,12 @@ int main (int argc, char** argv) {
 
 				/* Espera pela terminacao de cada filho */
 				while (runningChildren > 0) {
-					waitForChild(children);
-					runningChildren --;
+					waitForChild();
+					runningChildren--;
 				}
 
 
-				printChildren(children);
+				printChildren();
 
 				printf("--\nCircuitRouter-AdvShell ended.\n");
 				break;
@@ -144,9 +146,10 @@ int main (int argc, char** argv) {
 		}
 		if (FD_ISSET(fileno(shellPipe), &readfds)) {
 			numArgs =  readLineArguments(shellPipe, args, MAXARGS+1, buffer, BUFFER_SIZE);
+			isPipe = TRUE;
 			if (numArgs > 0 && (strcmp(args[0], COMMAND_RUN) != 0)) {
 				FILE *clientPipe = fopen(args[MAXARGS-1],"a");
-				fprintf(clientPipe, "Command not supported"); //FIXME nao sei se é para abrir com "a"
+				fprintf(clientPipe, "Command not supported\n"); //FIXME nao sei se é para abrir com "a"
 				fclose(clientPipe);
 				continue;
 			}
@@ -160,22 +163,23 @@ int main (int argc, char** argv) {
 			}
 			if (MAXCHILDREN != -1 && runningChildren >= MAXCHILDREN) {
 				sigprocmask(SIG_BLOCK, sigset, NULL);
-				waitForChild(children);
+				waitForChild();
 				runningChildren--;
-				sigprocmask(SIG_UNBLOCK, &xpto.sa_mask, NULL);
+				sigprocmask(SIG_UNBLOCK, sigset, NULL);
 			}
 			child_t *child = (child_t*) malloc(sizeof(child_t));
 			if (child == NULL) {
-				perror("Error on alocating memory for child.");
+				perror("Error on alocating memory for child.\n");
 			}
 			sigprocmask(SIG_BLOCK, sigset, NULL);
+			
 			//marcação do tempo inicial
-
 			TIMER_READ(child->startTime);
+
 			pid = fork();
 			if (pid < 0) {
 				free(child);
-				perror("Failed to create new process.");
+				perror("Failed to create new process.\n");
 				exit(EXIT_FAILURE);
 			}
 
@@ -189,9 +193,11 @@ int main (int argc, char** argv) {
 			} else {
 				char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
 				char *newArgs[3] = {seqsolver, args[1], NULL};
-				FILE *clientPipe = fopen(args[MAXARGS-1],"a");
-				close(1);
-				dup(fileno(clientPipe));
+				if (isPipe){
+					FILE *clientPipe = fopen(args[MAXARGS-1],"a");
+					close(1);
+					dup(fileno(clientPipe));
+				}
 				execv(seqsolver, newArgs);
 				perror("Error while executing child process"); // Nao deveria chegar aqui
 				exit(EXIT_FAILURE);
@@ -205,26 +211,25 @@ int main (int argc, char** argv) {
 			printf("Unknown command. Try again.\n");
 		}
 	}
-
+	
 	for (int i = 0; i < vector_getSize(children); i++) {
 		free(vector_at(children, i));
 	}
 	vector_free(children);
 	unlink(programName);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
 
-void sigchldTreatment(vector_t *children) {
-	// FIXME implement the rest
+void sigchldTreatment() {
 	int pid, status;
-	while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {
-		for (int i = 0; i < vector_getSize(children); i++) {
-			child_t *child = vector_at(children, i);
-			if (pid == child->pid) {
-				TIMER_READ(child->stopTime);
-				child->status = status;
-			}
+	pid = waitpid(-1, &status, WNOHANG);
+	for (int i = 0; i < vector_getSize(children); i++) {
+		child_t *child = vector_at(children, i);
+		if (pid == child->pid) {
+			TIMER_READ(child->stopTime);
+			child->status = status;
+			runningChildren--;
 		}
 	}
 }

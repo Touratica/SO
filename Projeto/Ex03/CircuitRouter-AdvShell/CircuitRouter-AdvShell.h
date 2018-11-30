@@ -12,8 +12,8 @@ typedef struct {
     TIMER_T stopTime, startTime;
 } child_t;
 
-void waitForChild(vector_t *children);
-void printChildren(vector_t *children);
+void waitForChild();
+void printChildren();
 void sigchldTreatment();
 
 #endif /* CIRCUITROUTER_SHELL_H */

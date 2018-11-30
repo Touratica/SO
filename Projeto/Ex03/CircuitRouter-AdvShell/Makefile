@@ -30,6 +30,6 @@ CircuitRouter-Client:
 clean:
 	@echo Cleaning...
 	rm -f $(OBJS) $(TARGET)
-	rm CircuitRouter-AdvShell.pipe
 	(cd ../CircuitRouter-SeqSolver/ && make clean)
 	(cd ../CircuitRouter-Client/ && make clean)
+	rm CircuitRouter-AdvShell.pipe

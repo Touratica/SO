@@ -36,43 +36,43 @@ int main (int argc, char** argv) {
 		advShellPipeName = strdup(argv[1]);
 	}
 	else {
-		fprintf(stderr, "AdvShell pipe not specified.");
+		fprintf(stderr, "AdvShell pipe not specified.\n");
 		exit(EXIT_FAILURE);
 	}
 
 	printf("Welcome to CircuitRouter-Client\n\n");
 	
 	// Usar mkstemp para criar ficheiro temporário e mkfifo para criar pipe para o client
-	char *template = "/tmp/CircuitRouter-Client.XXXXXX";
+	char template[] = "/tmp/CircuitRouter-Client.XXXXXX";
 	int fdtemp = mkstemp(template);
 	FILE * pipeClient = fdopen(fdtemp, "r+");
 	if (!mkfifo(template, 0777)) {
 		perror("Error while creating pipe for the client.");
 		exit(EXIT_FAILURE);
 	}
-	// FILE *readPipe = fopen(tmpname, "r+");
 	FD_SET(fdtemp, &readfds);
+
 	while (1) {
-		if (fgets(buffer, BUFFER_SIZE, stdin)==NULL){
+		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL){
 			break;
 		}
+
 		buffer[strlen(buffer)-1] = ' '; // replaces /n with a whitespace
 		strcat(buffer, template);
 
-		// TODO verificar erros
+
 		FILE *advShellPipe = fopen(advShellPipeName, "a");
+		
 		if (advShellPipe == NULL) {
-			perror("Pipe doesn't exist."); //checks if a pipe exists (if fopen sets errno)
+			perror("Pipe doesn't exist."); // checks if a pipe exists (if fopen sets errno)
 		}
 		fprintf(advShellPipe, "%s", buffer); 
-		fclose(advShellPipe); //verificar se -1
+		fclose(advShellPipe);
 		select(2, &readfds, NULL, NULL, NULL);
 		if(FD_ISSET(fdtemp, &readfds)){
 			fgets(received, BUFFER_SIZE, pipeClient);
 			fprintf(stdout, "%s", received);
 		}
-		//if (FD_ISSET(0,&readfds))
-
 	}
 	unlink(template);
 	fclose(pipeClient); 
