@@ -107,7 +107,8 @@ int main (int argc, char** argv) {
 	FD_ZERO(&readfds);
 
 	FD_SET(0, &readfds);
-	FD_SET(fileno(advShellPipe), &readfds);
+	FILE * shellPipe = fopen(advShellPipe,"r+");
+	FD_SET(fileno(shellPipe), &readfds);
 
 	if(argv[1] != NULL){
 		MAXCHILDREN = atoi(argv[1]);
@@ -142,10 +143,12 @@ int main (int argc, char** argv) {
 				break;
 			}
 		}
-		if (FD_ISSET(fileno(advShellPipe), &readfds)) {
-			numArgs =  readLineArguments(fileno(advShellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
+		if (FD_ISSET(fileno(shellPipe), &readfds)) {
+			numArgs =  readLineArguments(fileno(shellPipe), args, MAXARGS+1, buffer, BUFFER_SIZE);
 			if (numArgs > 0 && (strcmp(args[0], COMMAND_RUN) != 0)) {
-				fprintf(fileno(argv[MAXARGS-1]), "Command not supoorted");
+				FILE * clientPipe = fopen(argv[MAXARGS-1],"a");
+				fprintf(fileno(clientPipe), "Command not supported"); //FIXME nao sei se é para abrir com "a"
+				fclose(clientPipe);
 				continue;
 			}
 		}
@@ -187,8 +190,9 @@ int main (int argc, char** argv) {
 			} else {
 				char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
 				char *newArgs[3] = {seqsolver, args[1], NULL};
+				FILE * clientPipe = fopen(argv[MAXARGS-1],"a");
 				close(1);
-				dup(fileno(args[MAXARGS-1]));
+				dup(fileno(clientPipe));
 				execv(seqsolver, newArgs);
 				perror("Error while executing child process"); // Nao deveria chegar aqui
 				exit(EXIT_FAILURE);

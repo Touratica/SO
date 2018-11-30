@@ -27,7 +27,12 @@ int main (int argc, char** argv) {
 
 	char *args[MAXARGS + 1];
 	char buffer[BUFFER_SIZE];
+	char received[BUFFER_SIZE];
 	char *advShellPipeName;
+	fd_set readfds;
+	FD_ZERO(&readfds);
+
+	FD_SET(0, &readfds);
 
 	if (argv[1] != NULL) {
 		advShellPipeName = strdup(argv[1]);
@@ -46,9 +51,12 @@ int main (int argc, char** argv) {
 		perror("Error while creating pipe for the client.");
 		exit(EXIT_FAILURE);
 	}
-
+	FILE * readPipe = fopen(tmpname, "r+");
+	FD_SET(fileno(readPipe), &readfds);
 	while (1) {
-		fgets(buffer, BUFFER_SIZE, stdin);
+		if (fgets(buffer, BUFFER_SIZE, stdin)==NULL){
+			break;
+		}
 		buffer[strlen(buffer)-1] = ' '; // replaces /n with a whitespace
 		strcat(buffer, tmpname);
 
@@ -58,9 +66,16 @@ int main (int argc, char** argv) {
 			perror("Pipe doesn't exist."); //checks if a pipe exists (if fopen sets errno)
 		}
 		fprintf(advShellPipe, buffer); 
-		fclose(advShellPipe);
+		fclose(advShellPipe); //verificar se -1
+		select(2, &readfds, NULL, NULL, NULL);
+		if(FD_ISSET(fileno(readPipe), &readfds)){
+			fgets(received, BUFFER_SIZE,readPipe);
+			fprintf(received,"%s");
+		}
+		//if (FD_ISSET(0,&readfds))
 
 	}
+	fclose(readPipe); 
 	unlink(tmpname);
 	exit(EXIT_SUCCESS);
 
