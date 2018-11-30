@@ -5,7 +5,7 @@ SOURCES = router.c maze.c grid.c coordinate.c CircuitRouter-SeqSolver.c
 SOURCES+= ../lib/vector.c ../lib/queue.c ../lib/list.c ../lib/pair.c
 OBJS = $(SOURCES:%.c=%.o)
 CC   = gcc
-CFLAGS =-Wall -std=gnu99 -I../
+CFLAGS =-g -Wall -std=gnu99 -I../
 LDFLAGS=-lm
 TARGET = CircuitRouter-SeqSolver
 

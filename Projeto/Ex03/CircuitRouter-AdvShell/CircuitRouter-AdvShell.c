@@ -81,35 +81,27 @@ int main (int argc, char** argv) {
 	sigaddset(&xpto.sa_mask, SIGPIPE); // FIXME signals to be blocked on sigaction
 	sigaction(SIGCHLD, &xpto, NULL);
 
-	char *advShellPath = get_current_dir_name();
-	if (advShellPath == NULL) {
-			perror("Unable to set pipe's path.");
-	}
 
-	char* programName = (char*) malloc(sizeof(char) * strlen(argv[0]-1));
+	char* programName = (char*) malloc(sizeof(char) * (strlen(argv[0]-1) + 15));
 	// tirou ./ e acrescentar /0 no fim
-
-	for (int i = 2; i <= strlen(argv[0]); i++){
-		programName[i-2]= argv[0][i];
+	for (int i = 0; i <= strlen(argv[0]); i++) {
+		programName[i] = argv[0][i];
 	}
 
-	char *advShellPipe = (char*) malloc(sizeof(char) * (strlen(advShellPath) + strlen(programName) + strlen( ".pipe") + 1)); // 1 = \0
-
-	strcat(advShellPipe, advShellPath);
-	strcat(advShellPipe, "/");
-	strcat(advShellPipe, programName);
-	strcat(advShellPipe, ".pipe");
+	strcat(programName, ".pipe");
 
 	fd_set readfds;
 
-	if (mkfifo(advShellPipe, 0777)) {
+
+	if (mkfifo(programName, 0777)) {
 		perror("Unable to create pipe.");
 	}
 
 	FD_ZERO(&readfds);
 
 	FD_SET(0, &readfds);
-	FILE *shellPipe = fopen(advShellPipe,"r+");
+	FILE *shellPipe = fopen(programName, "r+");
+	// FIXME gives segmentation fault on next line
 	FD_SET(fileno(shellPipe), &readfds);
 
 	if(argv[1] != NULL){
@@ -148,7 +140,7 @@ int main (int argc, char** argv) {
 		if (FD_ISSET(fileno(shellPipe), &readfds)) {
 			numArgs =  readLineArguments(shellPipe, args, MAXARGS+1, buffer, BUFFER_SIZE);
 			if (numArgs > 0 && (strcmp(args[0], COMMAND_RUN) != 0)) {
-				FILE *clientPipe = fopen(argv[MAXARGS-1],"a");
+				FILE *clientPipe = fopen(args[MAXARGS-1],"a");
 				fprintf(clientPipe, "Command not supported"); //FIXME nao sei se é para abrir com "a"
 				fclose(clientPipe);
 				continue;
@@ -192,7 +184,7 @@ int main (int argc, char** argv) {
 			} else {
 				char seqsolver[] = "../CircuitRouter-SeqSolver/CircuitRouter-SeqSolver";
 				char *newArgs[3] = {seqsolver, args[1], NULL};
-				FILE *clientPipe = fopen(argv[MAXARGS-1],"a");
+				FILE *clientPipe = fopen(args[MAXARGS-1],"a");
 				close(1);
 				dup(fileno(clientPipe));
 				execv(seqsolver, newArgs);
@@ -213,7 +205,7 @@ int main (int argc, char** argv) {
 		free(vector_at(children, i));
 	}
 	vector_free(children);
-	unlink(advShellPipe);
+	unlink(programName);
 
 	return EXIT_SUCCESS;
 }

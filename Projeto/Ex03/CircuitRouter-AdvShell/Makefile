@@ -5,7 +5,7 @@ SOURCES = CircuitRouter-AdvShell.c
 SOURCES+= ../lib/commandlinereader.c ../lib/vector.c
 OBJS = $(SOURCES:%.c=%.o)
 CC   = gcc
-CFLAGS =-Wall -std=gnu99 -I../
+CFLAGS =-g -Wall -std=gnu99 -I../
 LDFLAGS=-lm
 TARGET = CircuitRouter-AdvShell
 
