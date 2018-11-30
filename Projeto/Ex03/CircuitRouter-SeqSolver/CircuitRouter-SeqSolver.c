@@ -239,6 +239,7 @@ int main(int argc, char** argv){
 
     fclose(resultFp);
     fprintf(1, "Circuit solved");
+    close(1);
     exit(0);
 }
 
